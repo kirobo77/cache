@@ -8,7 +8,6 @@ import java.util.List;
 
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,23 +17,28 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.cloudnative.catalogws.cache.CatalogCacheDto;
 import com.example.cloudnative.catalogws.entity.CatalogEntity;
 import com.example.cloudnative.catalogws.model.CatalogRequestModel;
 import com.example.cloudnative.catalogws.model.CatalogResponseModel;
-import com.example.cloudnative.catalogws.service.CatalogService;
+import com.example.cloudnative.catalogws.service.RefreshAheadService;
+import com.example.cloudnative.catalogws.service.RepositoryService;
+import com.example.cloudnative.catalogws.service.WriteBehindService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/catalog-ms")
 public class CatalogController {
 	 
-    @Autowired
-    CatalogService catalogService;
+    //private final CacheAsideWriteAround writeBehind;
+	private final WriteBehindService writeBehindService;
+	private final RepositoryService repositoryService;
     
+    private final RefreshAheadService refreshAhead;
     
     @GetMapping("/")
     public String health() {
@@ -44,9 +48,7 @@ public class CatalogController {
     @GetMapping(value="/catalogs")
     public ResponseEntity<List<CatalogResponseModel>> getCatalogs() {
     	log.info("getCatalogs");
-    	
-        Iterable<CatalogEntity> catalogList = catalogService.getAllCatalogs();
-
+        Iterable<CatalogEntity> catalogList = repositoryService.getAllCatalogs();
         List<CatalogResponseModel> result = new ArrayList<>();
         catalogList.forEach(v -> {
             result.add(new ModelMapper().map(v, CatalogResponseModel.class));
@@ -61,9 +63,9 @@ public class CatalogController {
         ModelMapper modelMapper = new ModelMapper();
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
 
-        CatalogCacheDto catalogCacheDto = modelMapper.map(catalogRequestModel, CatalogCacheDto.class);
-        catalogCacheDto.setCreatedAt(new Date());
-        catalogService.createCatalog(catalogCacheDto);
+        CatalogEntity catalogEntity = modelMapper.map(catalogRequestModel, CatalogEntity.class);
+        catalogEntity.setCreatedAt(new Date());
+        repositoryService.createCatalog(catalogEntity);
 
         return ResponseEntity.status(HttpStatus.OK).body(catalogRequestModel);
     }
@@ -72,13 +74,23 @@ public class CatalogController {
     public ResponseEntity<CatalogResponseModel> getCatalog(@PathVariable("productId") String productId) {
     	log.info("getCatalogs");
     	
-        CatalogCacheDto catalogCacheDto = catalogService.getCatalog(productId);
+    	CatalogEntity catalogEntity = repositoryService.getCatalog(productId);
         
         ModelMapper modelMapper = new ModelMapper();
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
 
-        CatalogResponseModel catalogResponseModel = modelMapper.map(catalogCacheDto, CatalogResponseModel.class);
+        CatalogResponseModel catalogResponseModel = modelMapper.map(catalogEntity, CatalogResponseModel.class);
         
         return ResponseEntity.status(HttpStatus.OK).body(catalogResponseModel);
     }
+    
+    @GetMapping(value="/refresh-ahead/{productId}")
+    public ResponseEntity<Void> refreshAhead(@PathVariable("productId") String productId)  {
+    	log.info("refreshAhead = {}", productId);
+    	
+    	refreshAhead.refreshAhead(productId);
+                
+        return ResponseEntity.status(HttpStatus.OK).body(null);
+    }
+
 }

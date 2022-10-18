@@ -1,16 +1,38 @@
 package com.example.cloudnative.catalogws.dto;
 
-import lombok.Data;
+import java.util.Date;
 
-import java.io.Serializable;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.redis.core.RedisHash;
 
-@Data
-public class CatalogDto implements Serializable {
-    private String productId;
-    private Integer qty;
-    private Integer unitPrice;
-    private Integer totalPrice;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
-    private String orderId;
-    private String userId;
+@Getter
+@Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@ToString
+@RedisHash(value = "catalog", timeToLive = 60L)
+public class CatalogDto {
+
+	private long id;
+
+	@Id
+	private String productId;
+
+	private String productName;
+
+	private Integer stock;
+
+	private Integer unitPrice;
+
+	private Date createdAt;
+	
+	
 }
