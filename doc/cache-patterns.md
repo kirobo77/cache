@@ -1,10 +1,9 @@
 # 1. 캐싱이란 ?
 
-- 나중에 요청할 결과를 미리 요청해 두었다가 
-- 
-- 컴퓨팅에서 캐시는 일반적으로 일시적인 특징이 있는 데이터 하위 집합을 저장하는 고속 데이터 스토리지 계층.
-- 캐시는 캐시의 접근 시간에 비해 원래 데이터를 접근하는 시간이 오래 걸리는 경우나 값을 다시 계산하는 시간을 절약하고 싶은 경우에 사용.
-- 캐시에 데이터를 미리 복사해 놓으면 계산이나 접근 시간 없이 더 빠른 속도로 데이터에 접근 가능.
+- 나중에 요청할 결과를 미리 요청해 두었다가 빠르게 서비스를 제공해주는 역할
+  - 컴퓨팅에서 캐시는 일반적으로 일시적인 특징이 있는 데이터 하위 집합을 저장하는 고속 데이터 스토리지 계층.
+  - 캐시는 캐시의 접근 시간에 비해 원래 데이터를 접근하는 시간이 오래 걸리는 경우나 값을 다시 계산하는 시간을 절약하고 싶은 경우에 사용.
+  - 캐시에 데이터를 미리 복사해 놓으면 계산이나 접근 시간 없이 더 빠른 속도로 데이터에 접근 가능.
 
 
 
@@ -118,13 +117,13 @@
 - 서버 측 웹 캐싱은 일반적으로 프런트에 위치한 웹 서버의 웹 응답을 보존하는 웹 프록시를 활용하여 로드 및 대기 시간을 효과적으로 줄입니다. 
 - 클라이언트 측 웹 캐싱에는 이전에 방문한 웹 콘텐츠의 캐싱된 버전을 유지하는 브라우저 기반 캐싱이 포함될 수 있습니다. 
 
-## 7 일반 캐시
+## 4.7 일반 캐시
 
 - 메모리에서 데이터에 액세스하면 디스크나 SSD에서 데이터에 액세스하는 것보다 훨씬 빠르기 때문에 캐시의 데이터를 활용하면 많은 이점이 있습니다.
 -  트랜잭션 데이터 지원이나 디스크 기반의 내구성이 필요하지 않은 여러 사용 사례에서 인 메모리 키-값 스토어를 독립 실행형 데이터베이스로 사용하는 방법은 고성능 애플리케이션을 구축하는 데 효과적입니다.
 -  애플리케이션 속도는 물론, 경제적인 가격으로 제공되는 높은 처리량을 통해 이점을 얻을 수 있습니다. 제품 그룹, 범주 목록, 프로파일 정보 등의 참조 가능한 데이터는 [일반 캐시](https://aws.amazon.com/ko/caching/general-cache/)의 좋은 사용 사례입니다. 
 
-## 4.9 통합 캐시
+## 4.8 통합 캐시
 
 - 통합 캐시는 오리진 데이터베이스에서 자주 액세스하는 데이터를 자동으로 캐싱하는 인 메모리 계층입니다.
 - 가장 일반적으로, 기반 데이터베이스는 데이터가 캐시에 상주하는 경우 캐시를 사용하여 인바운드 데이터베이스 요청에 대한 응답을 제공합니다. 
@@ -141,23 +140,25 @@
 - 데이터의 결과값이 일정함
 - 연산이 무거움
 
-## 6.1 Local Cache
+## 5.1 Local Cache
 
 - Local 장비 내에서만 사용되는 캐시로, Local 장비의 Resource를 이용한다.
 - Local에서만 작동하기 때문에 속도가 빠르다.
 - Local에서만 작동하기 때문에 다른 서버와 데이터 공유가 어렵다.
-- EhCache, Caffeine , ConcurrentMap, Guava  등이 있다.
+- EhCache, Caffeine , ConcurrentMap 등이 있으며 일반적으로 K,V 구조만 지원한다.
 
-##  6.2 Global Cache
+##  5.2 Global Cache
 
 - 여러 서버에서 Cache Server에 접근하여 사용하는 캐시로 분산된 서버에서 데이터를 저장하고 조회할 수 있다.
 - 네트워크를 통해 데이터를 가져오므로, Local Cache에 비해 상대적으로 느리다.
 - 별도의 Cache서버를 이용하기 때문에 서버 간의 데이터 공유가 쉽다.
-- Redis, ElastiCache 등이 있다.
+- Redis, ElastiCache 등이 있고 Collection 등 다양한 자료구조를 지원한다.
 
-## 6.3 히트율
 
- 
+
+## 5.3 Cache Hit
+
+### 5.3.1 Hit Ratio
 
 
 
@@ -165,19 +166,33 @@
 
 
 
-위 그림은 파레토 법칙을 표현합니다. 즉 시스템 리소스 20%가 전체 전체 시간의 80% 정도를 소요함을 의미합니다. 따라서 캐시 대상을 선정할 때에는 캐시 오브젝트가 얼마나 자주 사용하는지, 적용시 전체적인 성능을 대폭 개선할 수 있는지 등을 따져야합니다.
+> 위 그림은 파레토 법칙을 표현합니다.  
+> 시스템 리소스 20%가 전체 전체 시간의 80% 정도를 소요함을 의미합니다.  
+> 따라서 캐시 대상을 선정할 때에는 캐시 오브젝트가 얼마나 자주 사용하는지, 적용시 전체적인 성능을 대폭 개선할 수 있는지 등을 따져야합니다.
 
- HitRatio는 캐시에 대하여 자원 요청과 비례하여 얼마나 캐시 정보를 획득했는지를 나타내며, 계산 식은 다음과 같습니다.
+- Cache 용어
 
-```
-HitRatio = hits / (hits + misses) * 100
-```
+  - cache hit
 
-캐시공간은 한정된 공간이기 때문에, 만료시간을 설정하여 캐시 유지시간을 설정할 수 있습니다. misses가 높다는 것은 캐시공간의 여유가 없어 이미 캐시에서 밀려났거나, 혹은 자주 사용하지 않는 정보를 캐시하여 만료시간이 지난 오브젝트를 획득하고자할 때 발생할 수 있습니다. 따라서 캐시를 설정할 때는 캐시 공간의 크기 및 만료 시간을 고려해야합니다.
+    - 참조하려는 데이터가 캐시에 존재할 때 cache hit라 함
 
-## 6.4  캐시 데이터의 수명
+  - cache miss
 
-모든 데이터를 지워지지 않고 평생 캐시 저장소에 저장하는 것은 효율적이지 않습니다. 그렇기 때문에, 캐시 만료 정책을 적절하게 설정하고 오랜 시간이 지난 데이터는 캐시 저장소에서 제거될 수 있도록 운영해야 합니다
+    - 참조하려는 데이터가 캐시에 존재 하지 않을 때 cache miss라 함
+
+  - cache hit ratio(캐시 히트율)
+
+    - 
+
+    ```
+    (cache hit 횟수)/(전체참조횟수) = (cache hit 횟수)/(cache hit 횟수 + cache miss 횟수)
+    ```
+
+### 5.3.2 cache hit ratio 높이기 위한 방안
+
+- 자주 참조되며 수정이 잘 발생하지 않는 데이터들로 구성되어야 한다.
+- 데이터의 수정이 잦은 경우 데이터베이스 접근 및 캐시 데이터 일관성 처리 과정이 필요함.
+- 캐시 만료 정책을 적절하게 설정하고 오랜 시간이 지난 데이터는 캐시 저장소에서 제거될 수 있도록 운영해야 한다.
 
 
 
@@ -197,7 +212,7 @@ HitRatio = hits / (hits + misses) * 100
 
 
 
-###  6.1.2 Cache-aside
+###  6.1.2 Cache-aside(Lazy-Loding)
 
 - 애플리케이션에서 가장 일반적으로 사용되는 캐시전략.
 
@@ -411,6 +426,20 @@ public String getAddress(Customer customer) {...}
 
 이 경우 캐시에 필요한 결과가 포함된 경우 결과가 반환되고 메서드가 호출되지 않는다.
 
+#### Optional Element
+
+| **Element**      | **Description**                                              | **Type** |
+| ---------------- | ------------------------------------------------------------ | -------- |
+| **cacheNames**   | 캐시 이름 (설정 메서드 리턴값이 저장되는)                    | String[] |
+| **value**        | cacheName의 alias                                            | String[] |
+| **key**          | 동적인 키 값을 사용하는 SpEL 표현식 동일한 cache name을 사용하지만 구분될 필요가 있을 경우 사용되는 값 | String   |
+| **condition**    | SpEL 표현식이 참일 경우에만 캐싱 적용 - or, and 등 조건식, 논리연산 가능 | String   |
+| **unless**       | 캐싱을 막기 위해 사용되는 SpEL 표현식 condition과 반대로 참일 경우에만 캐싱이 적용되지 않음 | String   |
+| **cacheManager** | 사용 할 CacheManager 지정 (EHCacheCacheManager, RedisCacheManager 등) | String   |
+| **sync**         | 여러 스레드가 동일한 키에 대한 값을 로드하려고 할 경우, 기본 메서드의 호출을 동기화 즉, 캐시 구현체가 Thread safe 하지 않는 경우, 캐시에 동기화를 걸 수 있는 속성 | boolean  |
+
+ 
+
 ### 7.4.2 @CacheEvict
 
 - 자주 필요하지 않은 값으로 캐시를 채울 경우 캐시는 상당히 크고 빠르게 증가할 수 있으며 오래되거나 사용되지 않는 데이터를 많이 보유할 수 있다. 
@@ -423,6 +452,20 @@ public String getAddress(Customer customer) {...}
 
 - 여기서 비울 캐시와 함께 *allEntries 추가 매개변수를 사용한다.* 이렇게 하면 캐시 *주소* 의 모든 항목이 지워지고 새 데이터를 위해 준비됩니다.
 
+#### Optional Element
+
+| **Element**          | **Description**                                              | **Type** |
+| -------------------- | ------------------------------------------------------------ | -------- |
+| **cacheNames**       | 제거할 캐시 이름                                             | String[] |
+| **value**            | cacheName의 Alias                                            | String[] |
+| **key**              | 동적인 키 값을 사용하는 SpEL 표현식 동일한 cache name을 사용하지만 구분될 필요가 있을 경우 사용되는 값 | String   |
+| **allEntries**       | 캐시 내의 모든 리소스를 삭제할지의 여부                      | boolean  |
+| **condition**        | SpEL 표현식이 참일 경우에만 삭제 진행 - or, and 등 조건식, 논리연산 가능 | String   |
+| **cacheManager**     | 사용 할 CacheManager 지정 (EHCacheCacheManager, RedisCacheManager 등) | String   |
+| **beforeInvocation** | true - 메서드 수행 이전 캐시 리소스 삭제 false - 메서드 수행 후 캐시 리소스 삭제 | boolean  |
+
+ 
+
 ### 7.4.3 @CachePut
 
 - *@CacheEvict* 가 오래되고 사용되지 않는 항목을 제거하여 대용량 캐시에서 항목을 조회하는 오버헤드를 줄이는 동안 캐시에서 너무 많은 데이터를 제거하는 것을 방지할 필요성이 있을 경우 *@CachePut* 주석을 사용 하면 메서드 실행을 방해하지 않고 캐시 내용을 업데이트할 수 있다.
@@ -433,6 +476,19 @@ public String getAddress(Customer customer) {...}
 ```
 
 - *@Cacheable* 과 *@CachePut* 의 차이점은 @Cacheable은 *메서드* 실행 을 **건너뛰지** 만 *@CachePut* 은 **실제로 메서드** 를 실행한 다음 그 결과를 캐시에 저장한다는 것이다.
+
+#### Optional Element
+
+| **Element**  | ***\*Description\****                                        | ***\**\*Type\*\**\*** |
+| ------------ | ------------------------------------------------------------ | --------------------- |
+| cacheName    | 입력할 캐시 이름                                             | String[]              |
+| value        | cacheNamed의 Alias                                           | String[]              |
+| key          | 동적인 키 값을 사용하는 SpEL 표현식 동일한 cache name을 사용하지만 구분될 필요가 있을 경우 사용되는 값 | String                |
+| cacheManager | 사용 할 CacheManager 지정 (EHCacheCacheManager, RedisCacheManager 등) | String                |
+| condition    | SpEL 표현식이 참일 경우에만 캐싱 적용 - or, and 등 조건식, 논리연산 가능 | String                |
+| unless       | 캐싱을 막기 위해 사용되는 SpEL 표현식 condition과 반대로 참일 경우에만 캐싱이 적용되지 않음 | String                |
+
+ 
 
 ### 7.4.4 @Caching
 
@@ -453,6 +509,19 @@ public String getAddress(Customer customer) {...}
 public String getAddress(Customer customer) {...}
 ```
 
+#### Optional Element
+
+| **Element**  | ***\*Description\****                                        | ***\**\*Type\*\**\*** |
+| ------------ | ------------------------------------------------------------ | --------------------- |
+| cacheName    | 입력할 캐시 이름                                             | String[]              |
+| value        | cacheNamed의 Alias                                           | String[]              |
+| key          | 동적인 키 값을 사용하는 SpEL 표현식 동일한 cache name을 사용하지만 구분될 필요가 있을 경우 사용되는 값 | String                |
+| cacheManager | 사용 할 CacheManager 지정 (EHCacheCacheManager, RedisCacheManager 등) | String                |
+| condition    | SpEL 표현식이 참일 경우에만 캐싱 적용 - or, and 등 조건식, 논리연산 가능 | String                |
+| unless       | 캐싱을 막기 위해 사용되는 SpEL 표현식 condition과 반대로 참일 경우에만 캐싱이 적용되지 않음 | String                |
+
+ 
+
 ### 7.4.5 @CacheConfig
 
 - *@CacheConfig* 주석을 사용하면 캐시 구성의 일부를 클래스 수준의 단일 위치로 간소화할 수 있으므로 **여러** 번 선언할 필요가 없다.
@@ -464,6 +533,15 @@ public class CustomerDataService {
     @Cacheable
     public String getAddress(Customer customer) {...}
 ```
+
+####  Optional Element
+
+| **Element**  | ***\*Description\****                                        | ***\**\*Type\*\**\*** |
+| ------------ | ------------------------------------------------------------ | --------------------- |
+| cacheNames   | 해당 클래스 내 정의된 캐시 작업에서의 default 캐시 이름      | String[]              |
+| cacheManager | 사용 할 CacheManager 지정 (EHCacheCacheManager, RedisCacheManager 등) | String                |
+
+ 
 
 ### 7.4.6  조건부 캐싱
 
@@ -499,10 +577,10 @@ public String getAddress(Customer customer) {...}
 
 ### 7.4.7 장애 처리
 
-레디스가 동작하지 않는 동안에는 캐시가 아닌 DB 에서 조회 하도록 fallback 기능이 있어야 한다.
+- 레디스가 동작하지 않는 동안에는 캐시가 아닌 DB 에서 조회 하도록 fallback 기능이 있어야 한다.
 
-spring-retry 의 @Retryable 과 @Recover 를 사용하면 된다.
-@Retryable 은 예외 발생시 재시도를 하고, @Recover는 재시도 실패시에 동작하는 어노테이션 이다.
+- spring-retry 의 @Retryable 과 @Recover 를 사용하면 된다.
+- @Retryable 은 예외 발생시 재시도를 하고, @Recover는 재시도 실패시에 동작하는 어노테이션 이다.
 
 ```java
 @Retryable(maxAttempts = 1)
@@ -520,11 +598,9 @@ public List<StoreBeaconSignalHistoryDto> allBeacons(Exception e, Long storeId) {
 
 
 
-
-
 ### 7.4.7 CacheManager
 
-@Cacheable 어노테이션을 사용하여 생성한 로컬 캐시 (ehCache)를 조회하고 삭제하는 방법을 알아보겠습니다.
+- @Cacheable 어노테이션을 사용하여 생성한 캐시를 조회하고 삭제하는 등 로우레벨의 캐시를 활용할 수 있다.
 
 ```
 import org.springframework.cache.CacheManager;
@@ -533,11 +609,7 @@ import org.springframework.cache.CacheManager;
 	CacheManager cacheManager;
 ```
 
- 
-
-##### Key, Value 정보 조회
-
-ehcache
+- Key, Value 정보 조회
 
 ```
 public ResponseEntity<Object> ehCacheValues() {
@@ -614,8 +686,6 @@ cacheManager.getCacheNames().stream().forEach(cacheName -> cacheManager.getCache
 
  
 
-
-
 ## 7.5 Redis Repository와 함게 캐싱 사용
 
 Spring Data Redis 의 Redis Repository 를 이용하면 간단하게 Domain Entity 를 Redis Hash 로 만들 수 있습니다.
@@ -669,23 +739,18 @@ public interface PersonRedisRepository extends CrudRepository<Person, String> {
 
 ```java
 public class RedisRepositoryTest {
-
     @Autowired
     private PersonRedisRepository repo;
 
     @Test
     void test() {
         Person person = new Person("Park", 20);
-
         // 저장
         repo.save(person);
-
         // `keyspace:id` 값을 가져옴
         repo.findById(person.getId());
-
         // Person Entity 의 @RedisHash 에 정의되어 있는 keyspace (people) 에 속한 키의 갯수를 구함
         repo.count();
-
         // 삭제
         repo.delete(person);
     }
