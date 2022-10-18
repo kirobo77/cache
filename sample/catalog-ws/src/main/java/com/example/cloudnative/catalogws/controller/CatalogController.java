@@ -22,6 +22,7 @@ import com.example.cloudnative.catalogws.model.CatalogRequestModel;
 import com.example.cloudnative.catalogws.model.CatalogResponseModel;
 import com.example.cloudnative.catalogws.service.RefreshAheadService;
 import com.example.cloudnative.catalogws.service.RepositoryService;
+import com.example.cloudnative.catalogws.service.TemplateService;
 import com.example.cloudnative.catalogws.service.WriteBehindService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -37,6 +38,7 @@ public class CatalogController {
     //private final CacheAsideWriteAround writeBehind;
 	private final WriteBehindService writeBehindService;
 	private final RepositoryService repositoryService;
+	private final TemplateService templateService;
     
     private final RefreshAheadService refreshAhead;
     
@@ -48,7 +50,7 @@ public class CatalogController {
     @GetMapping(value="/catalogs")
     public ResponseEntity<List<CatalogResponseModel>> getCatalogs() {
     	log.info("getCatalogs");
-        Iterable<CatalogEntity> catalogList = repositoryService.getAllCatalogs();
+        Iterable<CatalogEntity> catalogList = templateService.getAllCatalogs();
         List<CatalogResponseModel> result = new ArrayList<>();
         catalogList.forEach(v -> {
             result.add(new ModelMapper().map(v, CatalogResponseModel.class));
@@ -65,7 +67,7 @@ public class CatalogController {
 
         CatalogEntity catalogEntity = modelMapper.map(catalogRequestModel, CatalogEntity.class);
         catalogEntity.setCreatedAt(new Date());
-        repositoryService.createCatalog(catalogEntity);
+        templateService.createCatalog(catalogEntity);
 
         return ResponseEntity.status(HttpStatus.OK).body(catalogRequestModel);
     }
@@ -74,7 +76,7 @@ public class CatalogController {
     public ResponseEntity<CatalogResponseModel> getCatalog(@PathVariable("productId") String productId) {
     	log.info("getCatalogs");
     	
-    	CatalogEntity catalogEntity = repositoryService.getCatalog(productId);
+    	CatalogEntity catalogEntity = templateService.getCatalog(productId);
         
         ModelMapper modelMapper = new ModelMapper();
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
