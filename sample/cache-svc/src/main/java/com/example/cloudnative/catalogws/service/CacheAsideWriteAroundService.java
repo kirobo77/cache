@@ -40,7 +40,5 @@ public class CacheAsideWriteAroundService {
 		CatalogEntity catalogEntity = catalogRepository.findByProductId(productId);
 		return catalogEntity;
 	}
-	
-
 
 }

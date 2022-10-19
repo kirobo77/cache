@@ -24,7 +24,6 @@ public class HotKeyService{
 		return catalogRepository.findAll();
 	}
 
-	
 	@CacheEvict(value = "catalogs", allEntries = true)
 	public CatalogEntity createCatalog(CatalogEntity catalogEntity) throws JsonProcessingException {
 		log.info("createCatalog");
