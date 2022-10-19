@@ -884,7 +884,7 @@ latency-monitor-threshold 0
 #  Example 2: to get the stream of the expired keys subscribing to channel
 #             name __keyevent@0__:expired use:
 #
-notify-keyspace-events Ex
+  notify-keyspace-events Ex
 #
 #  By default all notifications are disabled because most users don't need
 #  this feature and the feature has some overhead. Note that if you don't

@@ -59,5 +59,4 @@ public class RedisConfig {
 	ChannelTopic topic() {
 		return new ChannelTopic("Catalog");
 	}
-
 }
