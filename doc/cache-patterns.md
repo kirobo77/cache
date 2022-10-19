@@ -16,7 +16,7 @@
 
 
 
-![img](D:\GitHub\cache\doc\assets\img0.png)
+![img](assets/img0.png)
 
 | **계층**      | **클라이언트 측**                                            | **DNS**             | **웹**                                                       | **앱**                                    | **데이터베이스**                               |
 | ------------- | ------------------------------------------------------------ | ------------------- | ------------------------------------------------------------ | ----------------------------------------- | ---------------------------------------------- |
@@ -1266,7 +1266,7 @@ public class RedisOperator<T> {
 
 
 
-![image-20221019124858345](D:\GitHub\cache\doc\assets\image-20221019124858345.png)
+![image-20221019124858345](assets/image-20221019124858345.png)
 
 
 
@@ -1336,7 +1336,7 @@ public class RedisOperator<T> {
 
 - 별도 캐시한 내역이 없으므로 매번 DB와의 통신이 필요하며, 부하가 유발되는 SQL이 지속 수행되면 DB I/O에 영향을 줍니다.
 
-![img](D:\GitHub\cache\doc\assets\img6)
+![img](assets/img6)
 
 
 
@@ -1354,7 +1354,7 @@ public class RedisOperator<T> {
 
 
 
-![img](D:\GitHub\cache\doc\assets\img2.png)
+![img](assets/img2.png)
 
 
 
@@ -1420,7 +1420,7 @@ public class CacheAsideWriteAroundService {
 
 - 이를 방지하기 위해 Cache Cluster 등 가용성 높은 시스템을 구축하여야 한다.
 
-![img](D:\GitHub\cache\doc\assets\img3.png)
+![img](assets/img3.png)
 
 1. 캐시에 데이터 요청
 2. 캐시는 데이터가 있으면 (Cache Hit) 바로 반환
@@ -1579,7 +1579,7 @@ public class HotKeyService{
 
 - 새로운 데이터를 캐시에 미리 넣어두기 때문에 읽기 성능을 향상시킬 수 있지만 **이후에 읽히지 않을 데이터도 넣어두는 리소스 낭비**가 발생할 수 있다.
 
-![img](D:\GitHub\cache\doc\assets\img4.png)
+![img](assets/img4.png)
 
 1. 캐시에 데이터를 추가하거나 업데이트
 
@@ -1597,7 +1597,7 @@ public class HotKeyService{
 
 - 다른 캐시 전략에 비해 구현하기 복잡한 편이며 캐시에서 DB 로 데이터를 업데이트 하기 전에 장애가 발생하면 데이터가 유실될 수 있다.
 
-![img](D:\GitHub\cache\doc\assets\img5.png)
+![img](assets/img5.png)
 
 1. 캐시에 데이터를 추가하거나 업데이트
 2. 캐시 데이터 반환
@@ -1698,14 +1698,3 @@ public class RefreshAheadService{
     }
 
 ```
-
-
-
-
-
-
-
-
-
-
-
