@@ -247,7 +247,7 @@ Azul Platform Core OpenJDK 지원 구독을 통해 Temurin 에 대한 상용 지
 ### 5.3.2 STS 설치
 
 - 다운로드 :  https://spring.io/tools
-- ![image-20221023203106620](C:\Users\김성태\AppData\Roaming\Typora\typora-user-images\image-20221023203106620.png)
+- ![image-20221023203106620](assets/image-20221023203106620.png)
 
 - 실행
 
