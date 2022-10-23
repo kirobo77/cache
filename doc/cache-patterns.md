@@ -228,7 +228,9 @@ cd D:\GitHub\cache\infra\Redis-x64-3.2.100
 .\redis-server.exe .\redis.windows.conf
 ```
 
-- 고가용성이나 이중화 테스트를 위해 나중에 컨테이너환경에서 Redis Cluster를 구성해서 테스트해 보는것을 추천한다.
+- 윈도우용 Redis의 경우 싱글 서버구조로 테스트용이며 고가용성이나 이중화를 위해 서버환경의 Redis Cluster, Sentinel 서버를 사용해야 한다.
+
+![image-20221023194009941](assets/image-20221023194009941.png)
 
 
 
@@ -239,6 +241,8 @@ cd D:\GitHub\cache\infra\Redis-x64-3.2.100
 ```
 D:\GitHub\cache\infra\RedisInsight-v2-win-installer.exe
 ```
+
+![image-20221023193937008](assets/image-20221023193937008.png)
 
 
 
@@ -327,7 +331,7 @@ public class CatalogWsApplication {
 }
 ```
 
-#### 6.3.1.2 redis 프로퍼티
+#### 6.3.1.2 Redis 프로퍼티
 
 - Spring Boot Auto Configuration이 spring-boot-starter-data-redis를 사용하게 되면 디폴트로 자동 세팅되므로 필수가 아니다.
 
@@ -1024,6 +1028,67 @@ public void testHash() {
 
 
 
+### 6.6.7 HyperLogLog 
+
+- 집합의 원소의 개수 추정, 타입은 string으로 저장.
+- **실습**
+
+```java
+@Test
+public void opsHyperLogLog() {
+    HyperLogLogOperations<String, String> hyperLogLogOps = redisTemplate.opsForHyperLogLog();
+    String cacheKey = "valueHyperLogLog";
+    String[] arr1 = {"1", "2", "2", "3", "4", "5", "5", "5", "5", "6", "7", "7", "7"};
+    hyperLogLogOps.add(cacheKey, arr1);
+    log.info("##### opsHyperLogLog #####");
+    log.info("count : {}", hyperLogLogOps.size(cacheKey));
+    redisTemplate.delete(cacheKey);
+}
+//count : 7
+```
+
+
+
+### 6.6.8 Geo 
+
+- 좌표 정보 처리, 타입은 zset으로 저장.
+- **실습**
+
+```java
+	@Test
+	public void testGeo() {
+		GeoOperations<String, String> geoOps = redisTemplate.opsForGeo();
+		String[] cities = { "서울", "부산" };
+		String[][] gu = { { "강남구", "서초구", "관악구", "동작구", "마포구" }, { "사하구", "해운대구", "영도구", "동래구", "수영구" } };
+		Point[][] pointGu = {
+				{ new Point(10, -10), new Point(11, -20), new Point(13, 10), new Point(14, 30), new Point(15, 40) },
+				{ new Point(-100, 10), new Point(-110, 20), new Point(-130, 80), new Point(-140, 60),
+						new Point(-150, 30) } };
+		String cacheKey = "valueGeo";
+
+		for (int x = 0; x < cities.length; x++) {
+			for (int y = 0; y < 5; y++) {
+				geoOps.add(cacheKey, pointGu[x][y], gu[x][y]);
+			}
+		}
+
+		log.info("##### opsGeo #####");
+		Distance distance = geoOps.distance(cacheKey, "강남구", "동작구");
+		assertNotNull(distance);
+		assertEquals(4469610.0767, distance.getValue(), 4);
+		log.info("Distance : {}", distance.getValue());
+		List<Point> position = geoOps.position(cacheKey, "동작구");
+		assertNotNull(position);
+		for (Point point : position) {
+			assertEquals(14.000001847743988d, point.getX(), 4);
+			assertEquals(30.000000249977013d, point.getY(), 4);
+			log.info("Position : {} x {}", point.getX(), point.getY());
+		}
+	}
+```
+
+
+
 ## 6.6 Pub/Sub
 
 - Publish / Subscribe 란 특정한 주제(topic)에 대하여 해당 topic을 구독한 모두에게 메시지를 발행하는 통신 방법으로 채널을 구독한 수신자(클라이언트) 모두에게 메세지를 전송 하는것을 의미한다.
@@ -1240,21 +1305,29 @@ public class RedisOperator<T> {
 
 
 
-## 7.1 Local Cache
+## 7.1 Local Cache 
 
 - Local 장비 내에서만 사용되는 캐시로, Local 장비의 Resource를 이용한다.
-  - Local에서만 작동하기 때문에 속도가 빠르다.
+  - Local에서만 작동하기 때문에 **속도가 빠르다**.
   - Local에서만 작동하기 때문에 다른 서버와 데이터 공유가 어렵다.
-  - EhCache, Caffeine , ConcurrentMap 등이 있으며 일반적으로 K,V 구조만 지원한다.
+  - EhCache, Caffeine , ConcurrentMap 등이 있으며 **K,V 구조만 지원**한다.
+
+> **Monolithic Architecture 환경의 경우 여러 서버간 캐쉬 데이타의 공유가 필요없을 경우에 사용**
+>
+> **Local Cache 사용 시 개별 인스턴스의 메모리 관리 잘 해야 함.**
 
 
 
-##  7.2 Global Cache
+##  7.2 Global Cache == Redis
 
 - 여러 서버에서 Cache Server에 접근하여 사용하는 캐시로 분산된 서버에서 데이터를 저장하고 조회할 수 있다.
-  - 네트워크를 통해 데이터를 가져오므로, Local Cache에 비해 상대적으로 느리다.
+  - 네트워크를 통해 데이터를 가져오므로, **Local Cache에 비해 상대적으로 느리다**.
   - 별도의 Cache서버를 이용하기 때문에 서버 간의 데이터 공유가 쉽다.
-  - Redis, ElastiCache 등이 있고 Collection 등 다양한 자료구조를 지원한다.
+  - Redis, ElastiCache 등이 있고 Collection 등 **다양한 자료구조를 지원**한다.
+
+> **Micro Service Architecture 환경에서 다수의 서비스간 캐쉬 데이타 공유가 필요할 경우 사용**.
+>
+> **Redis에서 제공하는 Collection을 잘 활용할 경우 성능 및 개발 생산성을 향상 시킬 수 있다.**
 
 
 
@@ -1685,7 +1758,7 @@ public class RefreshAheadService{
 
 ```
 
-- 갱신을 위한 API 작성해서 호출해 다
+- 갱신을 위한 API 작성해서 호출해서 대상 키의 TTL이 연장되었는지 확인해본다.
 
 ```java
     @GetMapping(value="/refresh-ahead/{productId}")
@@ -1698,3 +1771,22 @@ public class RefreshAheadService{
     }
 
 ```
+
+
+
+## 7.6 Redis 사용시 주의할 점
+
+- 메모리는 60%~70%사용 권고한다.
+  - 넘을 경우 메모리 Swap 현상 및 데이타 파편화로 인해 지연이 발생한다.
+- 삭제 정책 없는 무분별한 Key 생성은 메모리 및 성능 이슈가 발생한다.
+  - key는 Redis가 재기동되더라도 없어지지 않는다.
+- keys(모든 데이터 조회), flushall(모든 데이터 소거)  사용 시 성능 지연이 생긴다.
+  - Redis는 Single Thread로 동작하기 때문에 전체 키를 검색하는 명령어 사용 시 다음 요청이 중단됨
+  - Key 조회 시 Scan 명령어를 사용해하고 운영환경에서는 flushall 명령어를 사용하념 안된다.(ElastiCache에서는 막혀있음)
+
+1. Collection 에 너무 많은 데이타를 쌓으면 성능 지연이 생긴다.
+
+   콜렉션에 데이터 100만건을 넣으면 처리시간이 10초, 1천만건 넣으면 100초씩 걸리는 식으로 늘어나기 때문에 굳이 쓰려면 일단 데이터를 1만건 미만으로 관리해야 한다 고 권고했다.
+
+
+
