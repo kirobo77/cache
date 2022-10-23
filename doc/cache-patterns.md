@@ -1072,19 +1072,18 @@ public void opsHyperLogLog() {
 			}
 		}
 
-		log.info("##### opsGeo #####");
 		Distance distance = geoOps.distance(cacheKey, "강남구", "동작구");
-		assertNotNull(distance);
-		assertEquals(4469610.0767, distance.getValue(), 4);
+
 		log.info("Distance : {}", distance.getValue());
+		
 		List<Point> position = geoOps.position(cacheKey, "동작구");
-		assertNotNull(position);
+		
 		for (Point point : position) {
-			assertEquals(14.000001847743988d, point.getX(), 4);
-			assertEquals(30.000000249977013d, point.getY(), 4);
 			log.info("Position : {} x {}", point.getX(), point.getY());
 		}
 	}
+//Distance : 4469610.0767
+//Position : 14.000001847743988 x 30.000000249977013
 ```
 
 
@@ -1318,12 +1317,12 @@ public class RedisOperator<T> {
 
 
 
-##  7.2 Global Cache == Redis
+##  7.2 Global Cache
 
 - 여러 서버에서 Cache Server에 접근하여 사용하는 캐시로 분산된 서버에서 데이터를 저장하고 조회할 수 있다.
   - 네트워크를 통해 데이터를 가져오므로, **Local Cache에 비해 상대적으로 느리다**.
   - 별도의 Cache서버를 이용하기 때문에 서버 간의 데이터 공유가 쉽다.
-  - Redis, ElastiCache 등이 있고 Collection 등 **다양한 자료구조를 지원**한다.
+  - Redis, ElastiCache,  Memcached 등이 있고 Collection 등 **다양한 자료구조를 지원**한다.
 
 > **Micro Service Architecture 환경에서 다수의 서비스간 캐쉬 데이타 공유가 필요할 경우 사용**.
 >
@@ -1399,7 +1398,7 @@ public class RedisOperator<T> {
 >
 > 동기화의 책임이 애플리케이션에 있었다면, 해당 패턴은 캐시 제공자에게 책임이 위임되는 형태이다.
 >
-> 해당 솔루션은 Redis Enterprise, AWS DAX 등이 있다.
+> 해당 솔루션은 Redis Enterprise, Amazon DAX(Amazon DynamoDB Accelerator),  Memcached등이 있다.
 
 
 
