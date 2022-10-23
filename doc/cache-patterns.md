@@ -22,7 +22,7 @@
 | ------------- | ------------------------------------------------------------ | ------------------- | ------------------------------------------------------------ | ----------------------------------------- | ---------------------------------------------- |
 | **사용 사례** | 웹 사이트에서 웹 콘텐츠를 검색하는 속도 가속화(브라우저 또는 디바이스) | 도메인과 IP 간 확인 | 웹 또는 앱 서버에서 웹 콘텐츠를 검색하는 속도를 높이다. 웹 세션 관리(서버 측) | 애플리케이션 성능 및 데이터 액세스 가속화 | 데이터베이스 쿼리 요청과 관련한 지연 시간 단축 |
 | **기술**      | HTTP 캐시 헤더, 브라우저                                     | DNS 서버            | HTTP 캐시 헤더, CDN, 역방향 프록시, 웹 액셀러레이터, 키-값 스토어 | 키-값 데이터 스토어, 로컬 캐시            | 데이터베이스 버퍼, 키-값 데이터 스토어         |
-| **솔루션**    | 브라우저 내장 캐시                                           | DNS 캐시            | Vanish, nginx 등                                             | Redis, Caffein, EHCache 등                | Memory DB                                      |
+| **솔루션**    | 브라우저 Cache Storage                                       | DNS 캐시            | Vanish, nginx 등                                             | Redis, Memcached, Caffeine, EHCache 등    | Memory DB 계열                                 |
 
 
 
@@ -108,7 +108,7 @@
 
   
 
-## 4.3 DNS(Domain Name System) Cache
+## 4.3 DNS Cache
 
 - 인터넷의 모든 도메인 요청에서는 도메인 이름과 연결된 IP 주소를 확인하기 위해 [DNS](https://aws.amazon.com/route53/what-is-dns/) 캐시 서버를 쿼리한다. 
 - DNS Caching은 OS를 비롯한 여러 수준에서 ISP 및 DNS 서버를 통해 실행될 수 있다.
@@ -123,7 +123,7 @@
 
 
 
-## 4.5 애플리케이션 프로그래밍 인터페이스(API) Cache
+## 4.5 API Cache
 
 -  API는 일반적으로 HTTP를 통해 액세스할 수 있으며 사용자가 애플리케이션과 상호 작용할 수 있도록 리소스를 노출하는 RESTful 웹 서비스이다. 
 - API를 설계할 때 API의 예상 로드, 권한 부여, 버전 변경이 API 소비자에게 미치는 영향, 그리고 무엇보다 API의 사용 편의성 등을 고려하는 것이 중요하다.
@@ -137,7 +137,7 @@
 
 
 
-## 4.6 하이브리드 환경의 Cache
+## 4.6 하이브리드 Cache
 
 - 하이브리드 클라우드 환경에는 클라우드에 상주하면서 온프레미스 데이터베이스에 자주 액세스해야 하는 애플리케이션이 있을 수 있다. 
 - VPN 및 Direct Connect를 비롯하여, 클라우드와 온프레미스 환경 간의 연결을 구현하기 위해 사용할 수 있는 다양한 네트워크 토폴로지가 있다. 
@@ -215,11 +215,67 @@
 
  
 
-## 5.3  인프라
+## 5.3  사전준비
 
 
 
-### 5.3.1 Redis 실행
+### 5.3.1. JDK 설치
+
+- 다운로드 : [Eclipse Temulin Java 17](https://projects.eclipse.org/projects/adoptium.temurin/downloads)
+
+```
+지난 2021년 9월  14일 JAVA LTS(Long Term Support)인 JDK 17 GA 가 릴리즈되었다.
+JDK17은 향후 최대 2029년 9월까지 업데이트가 제공될 예정이다.
+참고로 다음 LTS는 JDK21 (2023년 9월)이 될 것으로 예상된다.
+
+2018년 오라클의 정책 변경에 따라 Oracle JDK 바이너리에 적용되던 BCL 라이선스가 바뀌어 이를 사용하려면 라이선스 구독이 필요하다. 따라서 대안으로는 OpenJDK 레퍼런스 소스 코드를 기반으로 제작된 여러 밴더사에서 제공중인 바이너리를 사용할 수 있으며, Azul Platform, Amazon Corretto, ReadHat OpenJDK, AdoptOpenJDK 가 그 대표적인 예이다.
+
+이 중에서 커뮤니티 기반 빌드인 AdoptOpenJDK 가 많이 쓰이는데, AdoptOpenJDK 의 최근 변화에 대해 알아보고 JDK 17 사용 방법을 살펴보고자 한다.
+ 
+AdoptOpenJDK 에서 Eclipse Adoptium 으로 이전
+
+https://blog.adoptopenjdk.net/2021/08/goodbye-adoptopenjdk-hello-adoptium/
+2021년 8월 2일 AdoptOpenJDK 가 Eclipse Adoptium 으로 이전되었다.
+Eclipse Adoptium 는 최상위 프로젝트(TLP)를 의미하며, Eclipse Temurin 에서 Java SE 런타임을 진행한다.
+Eclipse Temurin 은 오라클 SE TCK(Technology Compatibility Kit)와 Eclipse AQAvit 테스트를 통과했다.
+Azul Platform Core OpenJDK 지원 구독을 통해 Temurin 에 대한 상용 지원이 가능하다고 한다.
+기존의 AdoptOpenJDK 웹사이트와 AdoptOpenJDK API는 당분간 유지할 예정이나, 빠른 시일내에 Eclipse Adoptium 으로 이전할 것을 권장하고 있다.
+```
+
+
+
+### 5.3.2 STS 설치
+
+- 다운로드 :  https://spring.io/tools
+- ![image-20221023203106620](C:\Users\김성태\AppData\Roaming\Typora\typora-user-images\image-20221023203106620.png)
+
+- 실행
+
+  ```
+  java -jar spring-tool-suite-4-4.16.0.RELEASE-e4.25.0-win32.win32.x86_64.self-extracting.jar
+  ```
+
+
+
+### 5.3.3 Lombok 설치
+
+- 다운로드 : https://projectlombok.org/download
+
+![image-20221023202639158](assets/image-20221023202639158.png)
+
+- 실행
+
+  ```shell
+  java -jar lombok.jar
+  ```
+
+- 설치
+
+  ![image-20221023202859386](assets/image-20221023202859386.png)
+
+
+
+### 5.3.4 Redis 설치
 
 원한할 실습을 위하여 윈도우에서 동작하는 Redis StandAlone 버전을 사용한다.
 
@@ -234,7 +290,7 @@ cd D:\GitHub\cache\infra\Redis-x64-3.2.100
 
 
 
-### 5.3.2 Redis 데이터 확인
+### 5.3.5 Redis 데이터 확인
 
 - redis-cli 를 통해서 커맨드라인으로 Redis 관리가 가능하나 아래 윈도우용 툴을 통해 GUI로 확인 가능
 
@@ -246,7 +302,7 @@ D:\GitHub\cache\infra\RedisInsight-v2-win-installer.exe
 
 
 
-## 5.4 테스트
+## 5.6 테스트
 
 | 서비스 명       | URI                                                      | 설명                        |
 | --------------- | -------------------------------------------------------- | --------------------------- |
@@ -1327,6 +1383,10 @@ public class RedisOperator<T> {
 > **Micro Service Architecture 환경에서 다수의 서비스간 캐쉬 데이타 공유가 필요할 경우 사용**.
 >
 > **Redis에서 제공하는 Collection을 잘 활용할 경우 성능 및 개발 생산성을 향상 시킬 수 있다.**
+>
+> 애플리케이션의 데이타 Caching 시에는 Redis/ElastiCache, DB 데이타의 Caching 시에는 Memcached를 사용하면 된다.
+>
+> 
 
 
 
@@ -1789,3 +1849,14 @@ public class RefreshAheadService{
 
 
 
+
+
+
+
+[출처]
+
+https://aws.amazon.com/ko/caching/
+
+https://spring.io/projects/spring-data-redis
+
+https://daddyprogrammer.org/post/2241/redis-spring-data-redis-cluster-structure-comands/
