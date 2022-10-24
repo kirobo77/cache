@@ -17,7 +17,6 @@ spring:
       path: /h2-console        
   datasource:
     url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
-    
   redis:
     lettuce:
       timeout: 1000
@@ -28,7 +27,8 @@ spring:
         max-idle: 1     # pool의 idle 커넥션 최대수(default:8)
         min-idle: 0     # pool의 idle 커넥션 최소수(default:0)
     host: localhost  # 
-    port: 6379    
+    port: 6379
+    #password: 'new1234'   
      
 management:
   endpoints:
@@ -37,5 +37,3 @@ management:
         include: "*"    
 
 logging.level.org.springframework.cloud.sleuth: DEBUG
-
-

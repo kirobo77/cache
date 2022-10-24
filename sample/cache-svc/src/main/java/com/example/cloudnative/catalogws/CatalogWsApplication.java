@@ -6,8 +6,8 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.retry.annotation.EnableRetry;
 
 @SpringBootApplication
-@EnableCaching //Cache 기능 활성화  
 @EnableRetry
+@EnableCaching  
 public class CatalogWsApplication {
 
     public static void main(String[] args) {
