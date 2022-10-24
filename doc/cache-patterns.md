@@ -410,6 +410,8 @@ public class CatalogWsApplication {
 - Spring Boot Auto Configuration이 spring-boot-starter-data-redis를 사용하게 되면 디폴트로 자동 세팅되므로 필수가 아니다.
 
 ```java
+import static org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair.fromSerializer;
+
 @Configuration
 @RequiredArgsConstructor
 public class CacheConfig {
