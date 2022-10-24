@@ -941,36 +941,40 @@ public class RedisConfig {
 - Pub-Sub (생산자-소비자) 패턴에서 많이 사용된다.
 - **실습**
 
-```
+```java
 @Autowired
 StringRedisTemplate redisTemplate;
 
-@Test
-public void testList() {
-    final String key = "sabarada";
+	@Test
+	public void testList() {
+		final String key = "list";
 
-    final ListOperations<String, String> stringStringListOperations = redisTemplate.opsForList();
+		final ListOperations<String, String> stringStringListOperations = redisTemplate.opsForList();
 
-    stringStringListOperations.rightPush(key, "H");
-    stringStringListOperations.rightPush(key, "e");
-    stringStringListOperations.rightPush(key, "l");
-    stringStringListOperations.rightPush(key, "l");
-    stringStringListOperations.rightPush(key, "o");
+		stringStringListOperations.rightPush(key, "H");
+		stringStringListOperations.rightPush(key, "e");
+		stringStringListOperations.rightPush(key, "l");
+		stringStringListOperations.rightPush(key, "l");
+		stringStringListOperations.rightPush(key, "o");
 
-    stringStringListOperations.rightPushAll(key, " ", "s", "a", "b", "a");
+		stringStringListOperations.rightPushAll(key, " ", "s", "a", "b", "a");
 
-    final String character_1 = stringStringListOperations.index(key, 1);
+		final String character_1 = stringStringListOperations.index(key, 1);
 
-    System.out.println("character_1 = " + character_1);
+		log.info("character_1 = {}", character_1);
 
-    final Long size = stringStringListOperations.size(key);
+		final Long size = stringStringListOperations.size(key);
 
-    System.out.println("size = " + size);
+		log.info("size = {}", size);
 
-    final List<String> ResultRange = stringStringListOperations.range(key, 0, 9);
+		final List<String> ResultRange = stringStringListOperations.range(key, 0, 9);
 
-    System.out.println("ResultRange = " + Arrays.toString(ResultRange.toArray()));
-}
+		log.info("ResultRange = ", Arrays.toString(ResultRange.toArray()));
+
+		log.info("Left Pop = {}", stringStringListOperations.leftPop(key));
+
+		log.info("size = {}", stringStringListOperations.size(key));
+	}
 //character_1 = e
 //size = 10
 //ResultRange = [H, e, l, l, o,  , s, a, b, a]
@@ -983,32 +987,33 @@ public void testList() {
 - 데이터 존재 여부 확인에서 많이 사용한다.
 - **실습**
 
-```
-@Test
-public void testSet() {
-    String key = "sabarada";
-    SetOperations<String, String> stringStringSetOperations = redisTemplate.opsForSet();
+```java
+	@Test
+	public void testSet() {
+		String key = "set";
+		SetOperations<String, String> stringStringSetOperations = redisTemplate.opsForSet();
 
-    stringStringSetOperations.add(key, "H");
-    stringStringSetOperations.add(key, "e");
-    stringStringSetOperations.add(key, "l");
-    stringStringSetOperations.add(key, "l");
-    stringStringSetOperations.add(key, "o");
+		stringStringSetOperations.add(key, "H");
+		stringStringSetOperations.add(key, "e");
+		stringStringSetOperations.add(key, "l");
+		stringStringSetOperations.add(key, "l");
+		stringStringSetOperations.add(key, "o");
 
-    Set<String> sabarada = stringStringSetOperations.members(key);
+		Set<String> sabarada = stringStringSetOperations.members(key);
 
-    System.out.println("members = " + Arrays.toString(sabarada.toArray()));
+		log.info("members = ", Arrays.toString(sabarada.toArray()));
 
-    Long size = stringStringSetOperations.size(key);
+		Long size = stringStringSetOperations.size(key);
 
-    System.out.println("size = " + size);
+		log.info("size = {}", size);
 
-    Cursor<String> cursor = stringStringSetOperations.scan(key, ScanOptions.scanOptions().match("*").count(3).build());
+		Cursor<String> cursor = stringStringSetOperations.scan(key,
+				ScanOptions.scanOptions().match("*").count(3).build());
 
-    while(cursor.hasNext()) {
-        System.out.println("cursor = " + cursor.next());
-    }
-}
+		while (cursor.hasNext()) {
+			log.info("cursor = {}", cursor.next());
+		}
+	}
 //members = [l, e, o, H]
 //size = 4
 //cursor = l
@@ -1028,30 +1033,30 @@ public void testSet() {
 - **실습**
 
 ```java
-@Test
-public void testSortedSet() {
-    String key = "sabarada";
+	@Test
+	public void testSortedSet() {
+		String key = "sortedSet";
 
-    ZSetOperations<String, String> stringStringZSetOperations = redisTemplate.opsForZSet();
+		ZSetOperations<String, String> stringStringZSetOperations = redisTemplate.opsForZSet();
 
-    stringStringZSetOperations.add(key, "H", 1);
-    stringStringZSetOperations.add(key, "e", 5);
-    stringStringZSetOperations.add(key, "l", 10);
-    stringStringZSetOperations.add(key, "l", 15);
-    stringStringZSetOperations.add(key, "o", 20);
+		stringStringZSetOperations.add(key, "H", 1);
+		stringStringZSetOperations.add(key, "e", 5);
+		stringStringZSetOperations.add(key, "l", 10);
+		stringStringZSetOperations.add(key, "l", 15);
+		stringStringZSetOperations.add(key, "o", 20);
 
-    Set<String> range = stringStringZSetOperations.range(key, 0, 5);
+		Set<String> range = stringStringZSetOperations.range(key, 0, 5);
 
-    System.out.println("range = " + Arrays.toString(range.toArray()));
+		log.info("range = {}", Arrays.toString(range.toArray()));
 
-    Long size = stringStringZSetOperations.size(key);
+		Long size = stringStringZSetOperations.size(key);
 
-    System.out.println("size = " + size);
+		log.info("size = {}", size);
 
-    Set<String> scoreRange = stringStringZSetOperations.rangeByScore(key, 0, 13);
+		Set<String> scoreRange = stringStringZSetOperations.rangeByScore(key, 0, 13);
 
-    System.out.println("scoreRange = " + Arrays.toString(scoreRange.toArray()));
-}
+		log.info("scoreRange = {}", Arrays.toString(scoreRange.toArray()));
+	}
 //range = [H, e, l, o]
 //size = 4
 //scoreRange = [H, e
@@ -1066,28 +1071,28 @@ public void testSortedSet() {
 - **실습**
 
 ```java
-@Test
-public void testHash() {
-    String key = "sabarada";
+	@Test
+	public void testHash() {
+		String key = "hash";
 
-    HashOperations<String, Object, Object> stringObjectObjectHashOperations = redisTemplate.opsForHash();
+		HashOperations<String, Object, Object> stringObjectObjectHashOperations = redisTemplate.opsForHash();
 
-    stringObjectObjectHashOperations.put(key, "Hello", "sabarada");
-    stringObjectObjectHashOperations.put(key, "Hello2", "sabarada2");
-    stringObjectObjectHashOperations.put(key, "Hello3", "sabarada3");
+		stringObjectObjectHashOperations.put(key, "Hello", "sabarada");
+		stringObjectObjectHashOperations.put(key, "Hello2", "sabarada2");
+		stringObjectObjectHashOperations.put(key, "Hello3", "sabarada3");
 
-    Object hello = stringObjectObjectHashOperations.get(key, "Hello");
+		Object hello = stringObjectObjectHashOperations.get(key, "Hello");
 
-    System.out.println("hello = " + hello);
+		log.info("hello = {}", hello);
 
-    Map<Object, Object> entries = stringObjectObjectHashOperations.entries(key);s
+		Map<Object, Object> entries = stringObjectObjectHashOperations.entries(key);
 
-    System.out.println("entries = " + entries.get("Hello2"));
+		log.info("entries = {}", entries.get("Hello2"));
 
-    Long size = stringObjectObjectHashOperations.size(key);
+		Long size = stringObjectObjectHashOperations.size(key);
 
-    System.out.println("size = " + size);
-}
+		log.info("size = {}", size);
+	}
 //hello = sabarada
 //entries = sabarada2
 //size = 3
@@ -1101,16 +1106,20 @@ public void testHash() {
 - **실습**
 
 ```java
-@Test
-public void opsHyperLogLog() {
-    HyperLogLogOperations<String, String> hyperLogLogOps = redisTemplate.opsForHyperLogLog();
-    String cacheKey = "valueHyperLogLog";
-    String[] arr1 = {"1", "2", "2", "3", "4", "5", "5", "5", "5", "6", "7", "7", "7"};
-    hyperLogLogOps.add(cacheKey, arr1);
-    log.info("##### opsHyperLogLog #####");
-    log.info("count : {}", hyperLogLogOps.size(cacheKey));
-    redisTemplate.delete(cacheKey);
-}
+	@Test
+	public void testHyperLogLog() {
+
+		HyperLogLogOperations<String, String> hyperLogLogOps = redisTemplate.opsForHyperLogLog();
+
+		String cacheKey = "valueHyperLogLog";
+
+		String[] arr1 = { "1", "2", "2", "3", "4", "5", "5", "5", "5", "6", "7", "7", "7" };
+
+		hyperLogLogOps.add(cacheKey, arr1);
+
+		log.info("count : {}", hyperLogLogOps.size(cacheKey));
+
+	}
 //count : 7
 ```
 
