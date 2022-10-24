@@ -1,4 +1,4 @@
-package com.example.cloudnative.catalogms;
+package com.example.cloudnative.catalogws;
 
 import java.util.Date;
 

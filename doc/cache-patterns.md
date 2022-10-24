@@ -824,9 +824,6 @@ public interface CatalogCacheRepository extends CrudRepository<CatalogDto, Strin
 class CatalogWsApplicationTests {
 
 	@Autowired
-	StringRedisTemplate redisTemplate;
-
-	@Autowired
 	private CatalogCacheRepository repostiory;
 
 	@Test
@@ -913,25 +910,25 @@ public class RedisConfig {
 - **실습**
 
 ```java
-@Autowired
-StringRedisTemplate redisTemplate;
+    @Autowired
+    StringRedisTemplate redisTemplate;
 
-@Test
-public void testStrings() {
-    final String key = "sabarada";
+	@Test
+	public void testStrings() {
+		final String key = "string";
 
-    final ValueOperations<String, String> stringStringValueOperations = redisTemplate.opsForValue();
+		final ValueOperations<String, String> stringStringValueOperations = redisTemplate.opsForValue();
 
-    stringStringValueOperations.set(key, "1"); // redis set 명령어
-    final String result_1 = stringStringValueOperations.get(key); // redis get 명령어
+		stringStringValueOperations.set(key, "1"); // redis set 명령어
+		final String result_1 = stringStringValueOperations.get(key); // redis get 명령어
 
-    System.out.println("result_1 = " + result_1);
+		log.info("result_1 = {}", result_1);
 
-    stringStringValueOperations.increment(key); // redis incr 명령어
-    final String result_2 = stringStringValueOperations.get(key);
+		stringStringValueOperations.increment(key); // redis incr 명령어
+		final String result_2 = stringStringValueOperations.get(key);
 
-    System.out.println("result_2 = " + result_2);
-}
+		log.info("result_2 = {}", result_2);
+	}
 //result_1 = 1
 //result_2 = 2
 ```
