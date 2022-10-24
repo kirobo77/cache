@@ -34,16 +34,19 @@ public class CatalogService {
 		return catalogEntity;
 	}
 
+
 	
 	@CacheEvict(value="catalog", allEntries=true)
 	public void deleteCatalog() {
 		log.info("delete Cache");
 	}
 	
+		
 	@Retryable(maxAttempts = 1)
 	@Cacheable(value = "catalog", key = "#productId")
 	public CatalogEntity getCatalog(String productId) {
 		log.info("Cache Miss = {}", productId);
+		ThreadUtil.sleep();
 		CatalogEntity catalogEntity = catalogRepository.findByProductId(productId);
 		return catalogEntity;
 	}
@@ -54,4 +57,5 @@ public class CatalogService {
 		CatalogEntity catalogEntity = catalogRepository.findByProductId(productId);
 		return catalogEntity;
 	}
+	
 }

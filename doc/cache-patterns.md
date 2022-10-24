@@ -394,7 +394,7 @@ public class CatalogWsApplication {
 ```yaml
   redis:
     lettuce:
-      timeout: 1000
+      timeout: 10000
       shutdown-timeout: 100
       auto-reconnect: false
       pool:
@@ -744,7 +744,7 @@ import org.springframework.cache.CacheManager;
 
 - Spring Data Redis 의 Redis Repository 를 이용하면 간단하게 Domain Entity 를 Redis Hash 로 만들 수 있다.
 
-- 다만 트랜잭션을 지원하지 않기 때문에 만약 트랜잭션을 적용하고 싶다면 `RedisTemplate` 을 사용한다.
+- 트랜잭션을 지원하지 않기 때문에 만약 트랜잭션을 적용하고 싶다면 `RedisTemplate` 을 사용한다.
 
 
 
@@ -825,11 +825,11 @@ public class RedisRepositoryTest {
 
     @Test
     void test() {
-        CatalogDto catalogDto = new CatalogDto.Builder().productId("CATALOG-006").productName("seoul").stock(10).unitPrice(100).createdAt(new Date).Build();;
+        CatalogDto catalogDto = new CatalogDto.builder().productId("CATALOG-006").productName("seoul").stock(10).unitPrice(100).createdAt(new Date()).build();
         // 저장
         repostiory.save(catalogDto);
         // `keyspace:id` 값을 가져옴
-        repostiory.findById(catalogDto.getId());
+        repostiory.findById(catalogDto.getProductId());
         // Person Entity 의 @RedisHash 에 정의되어 있는 keyspace (catalog) 에 속한 키의 갯수를 구함
         repostiory.count();
         // 삭제
