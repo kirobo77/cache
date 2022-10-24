@@ -701,17 +701,20 @@ public class CatalogWsApplication {
 - **실습**
 
 ```java
-@Retryable(maxAttempts = 1)
-@Cacheable(cacheNames = "allBeacons", key = "'allBeacons:'+#storeId")
-public List<StoreBeaconSignalHistoryDto> allBeacons(Long storeId) {
-  return find(storeId);
-}
-
-@Recover
-public List<StoreBeaconSignalHistoryDto> allBeacons(Exception e, Long storeId) {
-  log.error(e.getMessage());
-  return find(storeId);
-}
+	@Retryable(maxAttempts = 1)
+	@Cacheable(value = "catalog", key = "#productId")
+	public CatalogEntity getCatalog(String productId) {
+		log.info("Cache Miss = {}", productId);
+		CatalogEntity catalogEntity = catalogRepository.findByProductId(productId);
+		return catalogEntity;
+	}
+	
+	@Recover
+	public CatalogEntity getCatalog(Exception e, String productId) {
+		log.info("Fallback Cache = {}", productId);
+		CatalogEntity catalogEntity = catalogRepository.findByProductId(productId);
+		return catalogEntity;
+	}
 ```
 
 
