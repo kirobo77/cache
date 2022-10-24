@@ -2,6 +2,7 @@ package com.example.cloudnative.catalogws.service;
 
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,8 @@ import lombok.extern.slf4j.Slf4j;
 public class CatalogService {
 
 	private final CatalogRepository catalogRepository;
+	
+	 private final RedisTemplate<String, Object> redisTemplate;
 
 	@Cacheable("catalog")
 	public Iterable<CatalogEntity> getAllCatalogs() {
@@ -34,6 +37,11 @@ public class CatalogService {
 		return catalogEntity;
 	}
 
+	public CatalogEntity setCatalog(CatalogEntity catalogEntity) {
+		log.info("Cache Save = {}", catalogEntity);
+		redisTemplate.convertAndSend("Catalog", catalogEntity);
+		return catalogEntity;
+	}
 
 	
 	@CacheEvict(value="catalog", allEntries=true)

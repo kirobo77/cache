@@ -59,7 +59,7 @@ public class CatalogController {
 
         CatalogEntity catalogEntity = modelMapper.map(catalogRequestModel, CatalogEntity.class);
         catalogEntity.setCreatedAt(new Date());
-        catalogService.createCatalog(catalogEntity);
+        catalogService.setCatalog(catalogEntity);
 
         return ResponseEntity.status(HttpStatus.OK).body(catalogRequestModel);
     }
