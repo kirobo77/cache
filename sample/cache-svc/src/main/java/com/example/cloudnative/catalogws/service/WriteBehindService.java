@@ -25,8 +25,8 @@ public class WriteBehindService{
 		return repository.findAll();
 	}
 
-	@Cacheable(value = "catalog", key = "#catalogCacheDto.productId")
-	public CatalogEntity setCatalog(CatalogEntity catalogEntity) throws JsonProcessingException {
+	@Cacheable(value = "catalog", key = "#catalogEntity.productId")
+	public CatalogEntity setCatalog(CatalogEntity catalogEntity){
 		log.info("Cache Save = {}", catalogEntity);
 		redisTemplate.convertAndSend("Catalog", catalogEntity);
 		return catalogEntity;

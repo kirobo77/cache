@@ -19,8 +19,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.cloudnative.catalogws.entity.CatalogEntity;
 import com.example.cloudnative.catalogws.model.CatalogRequestModel;
 import com.example.cloudnative.catalogws.model.CatalogResponseModel;
-import com.example.cloudnative.catalogws.service.CacheAsideWriteAroundService;
 import com.example.cloudnative.catalogws.service.RefreshAheadService;
+import com.example.cloudnative.catalogws.service.WriteBehindService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import lombok.RequiredArgsConstructor;
@@ -32,8 +32,8 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/catalog-ms")
 public class CatalogController {
 	 
-    private final CacheAsideWriteAroundService cacheAsideWriteAroundService;
-	//private final WriteBehindService writeBehindService;
+    //private final CacheAsideWriteAroundService cacheAsideWriteAroundService;
+	private final WriteBehindService writeBehindService;
 	//private final RepositoryService repositoryService;
 	//private final TemplateService templateService;
     private final RefreshAheadService refreshAhead;
@@ -46,7 +46,7 @@ public class CatalogController {
     @GetMapping(value="/catalogs")
     public ResponseEntity<List<CatalogResponseModel>> getCatalogs() {
     	log.info("getCatalogs");
-        Iterable<CatalogEntity> catalogList = cacheAsideWriteAroundService.getAllCatalogs();
+        Iterable<CatalogEntity> catalogList = writeBehindService.getAllCatalogs();
         List<CatalogResponseModel> result = new ArrayList<>();
         catalogList.forEach(v -> {
             result.add(new ModelMapper().map(v, CatalogResponseModel.class));
@@ -63,7 +63,7 @@ public class CatalogController {
 
         CatalogEntity catalogEntity = modelMapper.map(catalogRequestModel, CatalogEntity.class);
         catalogEntity.setCreatedAt(new Date());
-        cacheAsideWriteAroundService.setCatalog(catalogEntity);
+        writeBehindService.setCatalog(catalogEntity);
 
         return ResponseEntity.status(HttpStatus.OK).body(catalogRequestModel);
     }
@@ -72,7 +72,7 @@ public class CatalogController {
     public ResponseEntity<CatalogResponseModel> getCatalog(@PathVariable("productId") String productId) {
     	log.info("getCatalogs");
     	
-    	CatalogEntity catalogEntity = cacheAsideWriteAroundService.getCatalog(productId);
+    	CatalogEntity catalogEntity = writeBehindService.getCatalog(productId);
         
         ModelMapper modelMapper = new ModelMapper();
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
