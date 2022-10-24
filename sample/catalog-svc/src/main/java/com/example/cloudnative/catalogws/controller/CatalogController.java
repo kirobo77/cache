@@ -78,4 +78,14 @@ public class CatalogController {
         return ResponseEntity.status(HttpStatus.OK).body(catalogResponseModel);
     }
     
+    
+    @GetMapping(value="/catalog/delete-catalog")
+    public ResponseEntity<Void> deleteCatalog() {
+    	log.info("delete Catalogs");
+    	
+    	catalogService.deleteCatalog();
+    
+        return ResponseEntity.status(HttpStatus.OK).body(null);
+    }
+    
 }
