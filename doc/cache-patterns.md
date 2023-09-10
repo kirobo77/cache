@@ -978,8 +978,9 @@ class CatalogWsApplicationTests {
 ## 7.6 RedisTemplate을 통한 Caching 사용
 
 - `RedisTemplate` 을 사용하면 특정 Entity 뿐만 아니라 여러가지 원하는 타입을 넣을 수 있다.
-
 - `template` 을 선언한 후 원하는 타입에 맞는 `Operations` 을 꺼내서 사용한다.
+- DataType 의 상세한 사용법은 아래 사이트를 참고한다.
+  - http://redisgate.kr/redis/command/commands.php
 
 
 
@@ -1227,6 +1228,7 @@ StringRedisTemplate redisTemplate;
 
 ### 7.6.7 HyperLogLog 
 
+- 주로 매우 큰 데이터의 오차가 1% 이하의 근사치를 구할 때 사용한다.
 - 집합의 원소의 개수 추정, 타입은 string으로 저장.
 - **실습**
 
