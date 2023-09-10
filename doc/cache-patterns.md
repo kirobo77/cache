@@ -169,15 +169,62 @@
 - 이 경우 요청 지연 시간이 단축되고 데이터베이스 엔진의 CPU 및 메모리 사용률이 감소하여 데이터베이스의 성능이 크게 향상된다. 
 - 통합 캐시의 중요한 특성 중 하나는 Caching된 데이터가 데이터베이스 엔진이 디스크에 저장한 데이터와 일치한다는 것이다.
 
+# 5. Redis
+
+**Redis** 오픈소스는 **Re**mote **Di**ctionary **S**erver의 약어로, 전세계적으로 널리 사용되고 있는 In-memory cache 솔루션이다. 
+Redis는 다양한 데이터 구조 집합을 제공하고 있다.
+ DB-Engines Ranking of Key-value Stores에 따르면, Redis는 현재 가장 인기 있는 key-value store로써, BSD 라이선스를 보유하고 최적화된 C언어 코드로 작성되어 있으며, 다양한 개발 언어를 지원하고 있다. 
+
+## 5.1 Redis 의 주요 특징
+
+| 항목                          | 내용                                                         |
+| ----------------------------- | ------------------------------------------------------------ |
+| Key-Value 스토어              | Key-Value 를 저장할 수 있는 스토리지를 지원한다.             |
+| 컬렉션 지원                   | List, Set, Sorted Set, Hash 등의 자료구조를 지원한다.        |
+| Pub/Sub 지원                  | Publish/Subscribe 모델을 지원한다.                           |
+| 디스크 저장(Persistent Layer) | 현재 메모리의 상태를 디스크로 저장할 수 있는 기능과 현재까지의 업데이트 내용을 로그로 저장할 수 있는 AOF 기능이 있다. |
+| 복제(Replication)             | 다른 노드에서 해당 내용을 복제할 수 있는 Master/Slave 구조를 지원한다. |
+| 빠른 속도                     | 이상의 기능을 지원하면서도 초당 100,000 QPS(Queries Per Second) 수준의 높은 성능을 지원한다. |
+
+## 5.2 Redis 사용시 주의할 점
+
+- 메모리는 60%~70%사용 권고한다.
+  - 넘을 경우 메모리 Swap 현상 및 데이타 파편화로 인해 지연이 발생한다.
+- 삭제 정책 없는 무분별한 Key 생성은 메모리 및 성능 이슈가 발생한다.
+  - key는 Redis가 재기동되더라도 없어지지 않는다.
+- keys(모든 데이터 조회), flushall(모든 데이터 소거)  사용 시 성능 지연이 생긴다.
+  - Redis는 Single Thread로 동작하기 때문에 전체 키를 검색하는 명령어 사용 시 다음 요청이 중단됨
+  - Keys 조회 시 Scan 명령어를 사용해하고 운영환경에서는 flushall 명령어를 사용하념 안된다.(ElastiCache에서는 막혀있음)
+
+1. Collection 에 너무 많은 데이타를 쌓으면 성능 지연이 생긴다.
+
+   콜렉션에 데이터 100만건을 넣으면 처리시간이 10초, 1천만건 넣으면 100초씩 걸리는 식으로 늘어나기 때문에 굳이 쓰려면 일단 데이터를 1만건 미만으로 관리해야 한다 고 권고했다.
+
+
+## 5.3 Redis 메모리 
+
+Redis에서는 Key 와 DataType 을 관리하기 위한 OverHead 가 발생한다. 
+Redis는 메모리 기반 캐시 솔루션으로 데이타 적재 시 메모리를 효율적으로 사용할 수 있도록 설계한다.
+
+\- Key의 관리 메모리 : 50 바이트
+
+\- String 타입의 관리 메모리 : 30 바이트
+
+\- Lists 타입의 관리 메모리 : 15 바이트
+
+\- Sets 타입의 관리 메모리 : 75 바이트
+
+\- ZSets 타입의 관리 메모리 : 120 바이트
+
+\- Hash 타입의 관리 메모리 : 100 바이트
 
 
 
-
-# 5. 실습 애플리케이션  구성
-
+# 6. 실습 애플리케이션  구성
 
 
-## 5.1  개요
+
+## 6.1  개요
 
 - cache 활용 실습을 위한 Spring Boot로 구성되어 있는 간단한 애플리케이션이다.
 - 해당 애플리케이션은 Cache를 사용하는 않는 일반적인 Backend API 제공을 위한 서비스이다.
@@ -190,20 +237,21 @@
 
   
 
-## 5.2  사전 준비 작업
+## 6.2  사전 준비 작업
 
 
 
-### 5.2.1  주요 라이브러리
+### 6.2.1  주요 라이브러리
 
-| 기술 스택        | 참고                                         |
-| ---------------- | -------------------------------------------- |
-| Spring Web MVC   | Rest API를 제공하는 Spring 라이브러리        |
-| Spring Data JDBC | Database와 연계하는 Spring Data의 라이브러리 |
+| 기술 스택         | 참고                                         |
+| ----------------- | -------------------------------------------- |
+| Spring Web MVC    | Rest API를 제공하는 Spring 라이브러리        |
+| Spring Data JDBC  | Database와 연계하는 Spring Data의 라이브러리 |
+| Spring Data Redis | Redis와 연계하는 Spring Data의 라이브러리    |
 
 
 
-### 5.2.2  애플리케이션
+### 6.2.2  애플리케이션
 
 - Java 17을 기반 Spring Boot(v2.7.2)를 이용한 애플리케이션이다.
 
@@ -215,11 +263,11 @@
 
  
 
-## 5.3  사전준비
+## 6.3  사전준비
 
 
 
-### 5.3.1. JDK 설치
+### 6.3.1. JDK 설치
 
 - 다운로드 : [Eclipse Temulin Java 17](https://projects.eclipse.org/projects/adoptium.temurin/downloads)
 
@@ -244,7 +292,7 @@ Azul Platform Core OpenJDK 지원 구독을 통해 Temurin 에 대한 상용 지
 
 
 
-### 5.3.2 STS 설치
+### 6.3.2 STS 설치
 
 - 다운로드 :  https://spring.io/tools
 - ![image-20221023203106620](assets/image-20221023203106620.png)
@@ -257,7 +305,7 @@ Azul Platform Core OpenJDK 지원 구독을 통해 Temurin 에 대한 상용 지
 
 
 
-### 5.3.3 Lombok 설치
+### 6.3.3 Lombok 설치
 
 - 다운로드 : https://projectlombok.org/download
 
@@ -275,7 +323,7 @@ Azul Platform Core OpenJDK 지원 구독을 통해 Temurin 에 대한 상용 지
 
 
 
-### 5.3.4 Redis 설치
+### 6.3.4 Redis 설치
 
 원한할 실습을 위하여 윈도우에서 동작하는 Redis StandAlone 버전을 사용한다.
 
@@ -290,7 +338,7 @@ cd D:\GitHub\cache\infra\Redis-x64-3.2.100
 
 
 
-### 5.3.5 Redis 데이터 확인
+### 6.3.5 Redis 데이터 확인
 
 - redis-cli 를 통해서 커맨드라인으로 Redis 관리가 가능하나 아래 윈도우용 툴을 통해 GUI로 확인 가능
 
@@ -302,7 +350,7 @@ D:\GitHub\cache\infra\RedisInsight-v2-win-installer.exe
 
 
 
-## 5.6 테스트
+## 6.6 테스트
 
 | 서비스 명       | URI                                                      | 설명                        |
 | --------------- | -------------------------------------------------------- | --------------------------- |
@@ -319,11 +367,11 @@ D:\GitHub\cache\infra\RedisInsight-v2-win-installer.exe
 
 
 
-# 6. Caching Data with Spring
+# 7. Caching Data with Spring
 
 
 
-## 6.1 개요
+## 7.1 개요
 
 - Spring에서 Cache를 사용하기 위한 추상화된 다앙한 기능을 제공하는 라이브러리이다.
 
@@ -335,7 +383,7 @@ D:\GitHub\cache\infra\RedisInsight-v2-win-installer.exe
 
     
 
-## 6.2 의존성 추가
+## 7.2 의존성 추가
 
 - Spring Boot를 사용하는 경우 *[spring-boot-starter-cache](https://search.maven.org/search?q=g:org.springframework.boot a:spring-boot-starter-cache)* 스타터 패키지를 활용하여 Caching 종속성을 쉽게 추가할 수 있다.
 
@@ -352,9 +400,80 @@ D:\GitHub\cache\infra\RedisInsight-v2-win-installer.exe
 </dependency>
 ```
 
+- spring-boot-starter-data-redis  는 spring-data-redis 와 lettuce-core 라이브러리고 구성되어 있다.
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <!-- This module was also published with a richer model, Gradle metadata,  -->
+  <!-- which should be used instead. Do not delete the following line which  -->
+  <!-- is to indicate to Gradle or any Gradle module metadata file consumer  -->
+  <!-- that they should prefer consuming it instead. -->
+  <!-- do_not_remove: published-with-gradle-metadata -->
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-data-redis</artifactId>
+  <version>2.7.2</version>
+  <name>spring-boot-starter-data-redis</name>
+  <description>Starter for using Redis key-value data store with Spring Data Redis and the Lettuce client</description>
+  <url>https://spring.io/projects/spring-boot</url>
+  <organization>
+    <name>Pivotal Software, Inc.</name>
+    <url>https://spring.io</url>
+  </organization>
+  <licenses>
+    <license>
+      <name>Apache License, Version 2.0</name>
+      <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <name>Pivotal</name>
+      <email>info@pivotal.io</email>
+      <organization>Pivotal Software, Inc.</organization>
+      <organizationUrl>https://www.spring.io</organizationUrl>
+    </developer>
+  </developers>
+  <scm>
+    <connection>scm:git:git://github.com/spring-projects/spring-boot.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/spring-projects/spring-boot.git</developerConnection>
+    <url>https://github.com/spring-projects/spring-boot</url>
+  </scm>
+  <issueManagement>
+    <system>GitHub</system>
+    <url>https://github.com/spring-projects/spring-boot/issues</url>
+  </issueManagement>
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter</artifactId>
+      <version>2.7.2</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.data</groupId>
+      <artifactId>spring-data-redis</artifactId>
+      <version>2.7.2</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.lettuce</groupId>
+      <artifactId>lettuce-core</artifactId>
+      <version>6.1.9.RELEASE</version>
+      <scope>compile</scope>
+    </dependency>
+  </dependencies>
+</project>
+
+```
 
 
-## 6.3 Caching 활성화
+
+
+
+## 7.3 Caching 활성화
 
 - Caching을 활성화하기 위해 Spring은 프레임워크에서 다른 구성 수준 기능을 활성화하는 것과 마찬가지로 어노테이션을 사용한다.
 - *구성 클래스에 @EnableCaching* 주석을 추가하여 Caching 기능을 활성화할 수 있다.
@@ -365,9 +484,9 @@ D:\GitHub\cache\infra\RedisInsight-v2-win-installer.exe
 
 
 
-### 6.3.1 설정
+### 67.3.1 설정
 
-#### 6.3.1.1 Cache 활성화
+#### 7.3.1.1 Cache 활성화
 
 ```java
 package com.example.cloudnative.catalogws;
@@ -387,7 +506,7 @@ public class CatalogWsApplication {
 }
 ```
 
-#### 6.3.1.2 Redis 프로퍼티
+#### 7.3.1.2 Redis 프로퍼티
 
 - Spring Boot Auto Configuration이 spring-boot-starter-data-redis를 사용하게 되면 디폴트로 자동 세팅되므로 필수가 아니다.
 
@@ -405,7 +524,7 @@ public class CatalogWsApplication {
     port: 6379
 ```
 
-#### 6.3.1.3 Redis 설정
+#### 7.3.1.3 Redis 설정
 
 - Spring Boot Auto Configuration이 spring-boot-starter-data-redis를 사용하게 되면 디폴트로 자동 세팅되므로 필수가 아니다.
 
@@ -443,13 +562,13 @@ public class CacheConfig {
 
 
 
-## 6.4 Annotaion을 통한 Caching 사용
+## 7.4 Annotaion을 통한 Caching 사용
 
 - Caching을 사용하기 위해 어노테이션을 사용하여 Caching 동작을 메서드에 바인딩할 수 있다.
 
 
 
-### 6.4.1 KeyGenerator
+### 7.4.1 KeyGenerator
 
 - Cache의 Key를 생성하는 인터페이스이다. 
 
@@ -459,7 +578,7 @@ public class CacheConfig {
 
 - 별도의 키생성 패턴을 구현 시 아래  KeyGenerator에 대한 구현체를 작성할 수 있다.
 
-#### 6.4.1.1 실습
+#### 7.4.1.1 실습
 
 - Custom 키 생성기 구현
 
@@ -496,7 +615,7 @@ public String getCatalog(String productId) {...}
 
 
 
-### 6.4.2 @Cacheable
+### 7.4.2 @Cacheable
 
 - 메소드에 대한 Caching 동작을 활성화하는 가장 간단한 방법은 *@Cacheable* 로 구분 하고 결과가 저장될 캐시 이름으로 매개변수화한다.
 
@@ -530,7 +649,7 @@ public String getCatalog(String productId) {...}
 
 
 
-### 6.4.3 @CacheEvict
+### 7.4.3 @CacheEvict
 
 - 자주 필요하지 않은 값으로 캐시를 채울 경우 캐시는 상당히 크고 빠르게 증가할 수 있으며 오래되거나 사용되지 않는 데이터를 많이 보유할 수 있다. 
 - 이 경우 새로운 값을 캐시에 다시 로드할 수 있도록 @CacheEvict 주석을 사용하여 하나 이상의 모든 값을 제거 할수 가 있다.
@@ -556,7 +675,7 @@ public String getCatalog(String productId) {...}
 
 
 
-### 6.4.4 @CachePut
+### 7.4.4 @CachePut
 
 - *@CacheEvict* 가 오래되고 사용되지 않는 항목을 제거하여 대용량 캐시에서 항목을 조회하는 오버헤드를 줄이는 동안 캐시에서 너무 많은 데이터를 제거하는 것을 방지할 필요성이 있을 경우 *@CachePut* 주석을 사용 하면 메서드 실행을 방해하지 않고 캐시 내용을 업데이트할 수 있다.
 
@@ -580,7 +699,7 @@ public String getCatalog(String productId) {...}
 
 
 
-### 6.4.5 @Caching
+### 7.4.5 @Caching
 
 - 메서드를 Caching하기 위해 동일한 유형의 여러 어노테이션을 사용할 경우 아래와 같이 사용하는 것은 허용하지 않는다.
 
@@ -612,7 +731,7 @@ public String getCatalog(String productId) {...}
 
 
 
-### 6.4.6 @CacheConfig
+### 7.4.6 @CacheConfig
 
 - *@CacheConfig* 주석을 사용하면 캐시 구성의 일부를 클래스 수준의 단일 위치로 간소화할 수 있으므로 **여러** 번 선언할 필요가 없다.
 
@@ -633,7 +752,7 @@ public class CustomerDataService {
 
 
 
-### 6.4.7  조건부 Caching
+### 7.4.7  조건부 Caching
 
 - 경우에 따라 모든 상황에서 메서드에 대해 Caching이 제대로 작동하지 않을 수 있으며 이 경우 조건부 Caching을 활용하여 효과적인 캐쉬를 사용할 수 있다.
 
@@ -665,7 +784,7 @@ public String getCatalog(String projectId) {...}
 
 
 
-### 6.4.8 장애 처리
+### 7.4.8 장애 처리
 
 - 레디스가 동작하지 않는 동안에는 캐시가 아닌 DB 에서 조회 하도록 fallback 기능이 있어야 한다.
 - spring-retry 의 @Retryable 과 @Recover 를 사용하면 된다.
@@ -719,7 +838,7 @@ public class CatalogWsApplication {
 
 
 
-### 6.4.9 CacheManager
+### 7.4.9 CacheManager
 
 - @Cacheable 어노테이션을 사용하여 생성한 캐시를 조회하고 삭제하는 등 로우레벨의 캐시를 활용할 수 있다.
 
@@ -740,7 +859,7 @@ import org.springframework.cache.CacheManager;
 
  
 
-## 6.5 Redis Repository을 통한 Caching 사용
+## 7.5 Redis Repository을 통한 Caching 사용
 
 - Spring Data Redis 의 Redis Repository 를 이용하면 간단하게 Domain Entity 를 Redis Hash 로 만들 수 있다.
 
@@ -748,7 +867,7 @@ import org.springframework.cache.CacheManager;
 
 
 
-### 6.5.1 Entity 클래스 생성
+### 7.5.1 Entity 클래스 생성
 
 ```java
 import java.util.Date;
@@ -805,7 +924,7 @@ public class CatalogDto {
 
   
 
-### 6.5.2  Repository 클래스 생성
+### 7.5.2  Repository 클래스 생성
 
 ```
 @Repository
@@ -850,7 +969,7 @@ class CatalogWsApplicationTests {
 
 
 
-## 6.6 RedisTemplate을 통한 Caching 사용
+## 7.6 RedisTemplate을 통한 Caching 사용
 
 - `RedisTemplate` 을 사용하면 특정 Entity 뿐만 아니라 여러가지 원하는 타입을 넣을 수 있다.
 
@@ -858,7 +977,7 @@ class CatalogWsApplicationTests {
 
 
 
-### 6.6.1 설정
+### 7.6.1 설정
 
 
 ```java
@@ -904,7 +1023,7 @@ public class RedisConfig {
 
 
 
-### 6.6.2 Strings
+### 7.6.2 Strings
 
 - 대부분의 데이터는 문자열로 처리.
 - **실습**
@@ -935,7 +1054,7 @@ public class RedisConfig {
 
 
 
-### 6.6.3 List
+### 7.6.3 List
 
 - 순서를 가진 데이터 구조이다. (Head --- tail)
 - Pub-Sub (생산자-소비자) 패턴에서 많이 사용된다.
@@ -982,7 +1101,7 @@ StringRedisTemplate redisTemplate;
 
 
 
-### 6.6.4 Set
+### 7.6.4 Set
 
 - 데이터 존재 여부 확인에서 많이 사용한다.
 - **실습**
@@ -1024,7 +1143,7 @@ StringRedisTemplate redisTemplate;
 
 
 
-### 6.6.5 Sorted Set
+### 7.6.5 Sorted Set
 
 - 정렬된 set 데이터 처리용도로 사용된다.
 
@@ -1064,7 +1183,7 @@ StringRedisTemplate redisTemplate;
 
 
 
-### 6.6.6 Hash
+### 7.6.6 Hash
 
 - 키-값 쌍으로 이뤄진 데이터이다.(자바의 map 구조)
 - Key - Value 밑에 sub Key - Value 형식의 데이터 구조이다.
@@ -1100,7 +1219,7 @@ StringRedisTemplate redisTemplate;
 
 
 
-### 6.6.7 HyperLogLog 
+### 7.6.7 HyperLogLog 
 
 - 집합의 원소의 개수 추정, 타입은 string으로 저장.
 - **실습**
@@ -1125,7 +1244,7 @@ StringRedisTemplate redisTemplate;
 
 
 
-### 6.6.8 Geo 
+### 7.6.8 Geo 
 
 - 좌표 정보 처리, 타입은 zset으로 저장.
 - **실습**
@@ -1164,7 +1283,7 @@ StringRedisTemplate redisTemplate;
 
 
 
-## 6.6 Pub/Sub
+## 7.6 Pub/Sub
 
 - Publish / Subscribe 란 특정한 주제(topic)에 대하여 해당 topic을 구독한 모두에게 메시지를 발행하는 통신 방법으로 채널을 구독한 수신자(클라이언트) 모두에게 메세지를 전송 하는것을 의미한다.
 
@@ -1176,7 +1295,7 @@ StringRedisTemplate redisTemplate;
 
 
 
-### 6.6.1 설정
+### 7.6.1 설정
 
 ```java
 @Configuration
@@ -1213,7 +1332,7 @@ public class RedisConfig {
 
 
 
-### 6.6.2 Subscriber 
+### 7.6.2 Subscriber 
 
 ```java
 import org.springframework.data.redis.connection.Message;
@@ -1255,7 +1374,7 @@ public class RedisSubscriber implements MessageListener {
 
 
 
-### 6.6.3 Publisher 
+### 7.6.3 Publisher 
 
 ```java
 @Service
@@ -1277,7 +1396,7 @@ public class RedisPubService {
 
 
 
-### 6.6.4 RedisTemplate 유틸
+### 7.6.4 RedisTemplate 유틸
 
 - RedisTemplate를 쉽게 사용할 수 있는 제네릭 기반의 클래스이다.
 
@@ -1376,11 +1495,11 @@ public class RedisOperator<T> {
 
 
 
-# 7. Caching 전략
+# 8. Caching 전략
 
 
 
-## 7.1 Local Cache 
+## 8.1 Local Cache 
 
 - Local 장비 내에서만 사용되는 캐시로, Local 장비의 Resource를 이용한다.
   - Local에서만 작동하기 때문에 **속도가 빠르다**.
@@ -1393,7 +1512,7 @@ public class RedisOperator<T> {
 
 
 
-##  7.2 Global Cache
+##  8.2 Global Cache
 
 - 여러 서버에서 Cache Server에 접근하여 사용하는 캐시로 분산된 서버에서 데이터를 저장하고 조회할 수 있다.
   - 네트워크를 통해 데이터를 가져오므로, **Local Cache에 비해 상대적으로 느리다**.
@@ -1410,11 +1529,9 @@ public class RedisOperator<T> {
 
 
 
-## 7.3 Cache Hit
+## 8.3 Cache Hit
 
-
-
-### 7.3.1 Hit Ratio
+### 8.3.1 Hit Ratio
 
 
 
@@ -1424,7 +1541,7 @@ public class RedisOperator<T> {
 
 > 위 그림은 파레토 법칙을 표현한다.(반대로 롱테일의 법칙도 있다.)
 >
-> 시스템 리소스 20%가 전체 전체 시간의 80% 정도를 소요함을 의미한다.
+> 시스템 리소스 20%가 전체 시간의 80% 정도를 소요함을 의미한다.
 >
 > 캐시 대상을 선정할 때에는 캐시 오브젝트가 얼마나 자주 사용하는지, 적용시 전체적인 성능을 대폭 개선할 수 있는지 등을 따져야 한다.
 
@@ -1450,11 +1567,11 @@ public class RedisOperator<T> {
   
 - 캐시 히트율이 높다는 것은 데이터베이스에서 읽어오는 비율보다 메모리에 캐시된 데이터를 읽어오는 비율이 높다는 의미이기 때문에 효율적으로 캐시를 사용하고 있는것으로 판단할 수 있다.
 
-> Redis 의 stat info 명령어를 통해  hit/miss 건수 를 확인 할 수 있다.
+> Redis 의 info stats 명령어를 통해  hit/miss 건수 를 확인 할 수 있다.
 
 
 
-### 7.3.2 고려할 점
+### 8.3.2 고려할 점
 
 - 캐시가 효율적으로 동작하기 위해선 데이터가 다음과 같은 특징을 가져야 효과적인 활용이 가능하다.
   - 자주 조회되는 데이타.(데이타베이스의 부하를 극적으로 줄여준다.)
@@ -1468,7 +1585,7 @@ public class RedisOperator<T> {
 
 
 
-## 7.4 읽기 전략
+## 8.4 읽기 전략
 
 읽기 전략은 읽기 요청 시 어떤 시점에 캐시를 조회하느냐에 따라 전략이 달라진다.
 
@@ -1482,7 +1599,7 @@ public class RedisOperator<T> {
 
 
 
-### 7.4.1 No-Caching
+### 8.4.1 No-Caching
 
 - 캐시없이 Application에서 직접 DB로 요청하는 방식이다.
 
@@ -1492,7 +1609,7 @@ public class RedisOperator<T> {
 
 
 
-###  7.4.2 Cache-aside(Lazy-Loding)
+###  8.4.2 Cache-aside(Lazy-Loding)
 
 - 애플리케이션에서 가장 일반적으로 사용되는 캐시전략.
 
@@ -1562,7 +1679,7 @@ public class CacheAsideWriteAroundService {
 
 
 
-### 7.4.3 Read-through
+### 8.4.3 Read-through
 
 - Cache Aside 와 비슷하지만 데이터 동기화를 라이브러리 또는 캐시 제공자에게 위임하는 방식이라는 차이점이 있다.
 
@@ -1580,9 +1697,9 @@ public class CacheAsideWriteAroundService {
 
 
 
-### 7.4.4 읽기 캐시에서 발생 가능한 장애
+### 8.4.4 읽기 캐시에서 발생 가능한 장애
 
-####  7.4.4.1 Thundering Herd
+####  8.4.4.1 Thundering Herd
 
 - 캐시 읽기 전략에서는 공통적으로 캐시 확인 -> DB 확인 순서로 이어지는데 이 과정에서 캐시에 데이터가 있으며 DB 확인을 생략하는 것으로 성능을 향상시킨다.
 
@@ -1618,17 +1735,18 @@ public class ThunderingHerdServcie implements ApplicationListener<ApplicationRea
 
 
 
-#### 7.4.4.2 Cache Stampede
+#### 8.4.4.2 Cache Stampede
 
 - Cache Stampede 란 캐시가 만료될 때, 대용량 트래픽의 경우 캐시 miss 가 여러번 발생할 수 있다..
 - 여러 요청에 대해 cache miss 가 발생하면 각 request 는 DB 를 조회해서 데이터를 읽어와 캐시에 여러 번 쓰게 된다.
 - cache miss 와 cache write 가 여러번 발생해서 성능에 영향을 주는 것이 Cache Stampede 이다.
 
 - **해결방안**
-  - PER(Probablistic Early Recomputation) 알고리즘을 도입.
-
-    - PER 이란 TTL (만료시간) 이후 캐시를 갱신할 것인지에 대한 알고리즘이다.
-
+  
+- PER(Probablistic Early Recomputation) 알고리즘을 도입.
+  
+  - PER 이란 TTL (만료시간) 이후 캐시를 갱신할 것인지에 대한 알고리즘이다.
+  
   > Redis는 자기가 지니고 있는 key 중 랜덤으로 20개의 key를 테스트해서 20개의 key중 TTL이 다한 key를 expire한다.
   >
   > 만약 전체의 25%가 넘는다면 Redis는 다시 자기가 지니고 있는 Key중 랜덤으로 20개의 Key를 고르게 된다.
@@ -1636,7 +1754,7 @@ public class ThunderingHerdServcie implements ApplicationListener<ApplicationRea
   > 넘지 않는다면 그대로 20개를 다시 확인한다. 이 과정을 끊임없이 반복한다.
 
 
-#### 7.4.4.3 Hot Key
+#### 8.4.4.3 Hot Key
 
 - hot key 란 하나의 키에 대한 빈번한 접근을 말한다.
 - 대용량 트래픽에서 hot key 에 대한 대응방안이 안돼있다면 성능 문제가 발생할 수 있다.
@@ -1697,7 +1815,7 @@ public class HotKeyService{
 
 
 
-## 7.5 쓰기 전략
+## 8.5 쓰기 전략
 
 - 쓰기패턴은 쓰기 요청 시 어떤 시점에 캐시 갱신을 하는지에 따라 다음과 같이 세분화할 수 있다.
   - Write Around: 캐시를 갱신하지 않음
@@ -1706,9 +1824,9 @@ public class HotKeyService{
 
 
 
-### 7.5.1 Write Around
+### 8.5.1 Write Around
 
-- 데이타 쓰기 요청 시 DB에반 반영하고 캐시는 사용하지 않는다.
+- 데이타 쓰기 요청 시 DB에만 반영하고 캐시는 사용하지 않는다.
 
 - 수정사항은 DB 에만 반영하고 캐시는 그대로 두기 때문에 Cache Miss 가 발생하기 전까지는 캐시 갱신이 발생하지 않는다.
 
@@ -1721,7 +1839,7 @@ public class HotKeyService{
 
 
 
-### 7.5.2 Write-through
+### 8.5.2 Write-through
 
 - Read Through 와 마찬가지로 DB 동기화 작업을 캐시에게 위임한다.
 
@@ -1741,7 +1859,7 @@ public class HotKeyService{
 
    
 
-### 7.5.3 Write-behind
+### 8.5.3 Write-behind
 
 - 캐시와 DB 동기화를 비동기로 하는 방법이며 동기화 과정이 생략되기 때문에 **쓰기 작업이 많은 경우에 적합**하다.
 
@@ -1804,7 +1922,7 @@ public class WriteBehindService{
 
 
 
-### 7.5.4 Refresh Ahead
+### 8.5.4 Refresh Ahead
 
 - 자주 사용되는 데이터를 캐시 만료 전에 미리 TTL (Expire time) 을 갱신한다.
 - 캐시 미스 발생을 최소화 할 수 있지만 Warm Up 작업과 마찬가지로 자주 사용되는 데이터를 잘 예측해야 한다.
@@ -1852,20 +1970,6 @@ public class RefreshAheadService{
 ```
 
 
-
-## 7.6 Redis 사용시 주의할 점
-
-- 메모리는 60%~70%사용 권고한다.
-  - 넘을 경우 메모리 Swap 현상 및 데이타 파편화로 인해 지연이 발생한다.
-- 삭제 정책 없는 무분별한 Key 생성은 메모리 및 성능 이슈가 발생한다.
-  - key는 Redis가 재기동되더라도 없어지지 않는다.
-- keys(모든 데이터 조회), flushall(모든 데이터 소거)  사용 시 성능 지연이 생긴다.
-  - Redis는 Single Thread로 동작하기 때문에 전체 키를 검색하는 명령어 사용 시 다음 요청이 중단됨
-  - Key 조회 시 Scan 명령어를 사용해하고 운영환경에서는 flushall 명령어를 사용하념 안된다.(ElastiCache에서는 막혀있음)
-
-1. Collection 에 너무 많은 데이타를 쌓으면 성능 지연이 생긴다.
-
-   콜렉션에 데이터 100만건을 넣으면 처리시간이 10초, 1천만건 넣으면 100초씩 걸리는 식으로 늘어나기 때문에 굳이 쓰려면 일단 데이터를 1만건 미만으로 관리해야 한다 고 권고했다.
 
 
 
