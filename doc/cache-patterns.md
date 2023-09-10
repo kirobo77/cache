@@ -377,10 +377,16 @@ D:\GitHub\cache\infra\RedisInsight-v2-win-installer.exe
 
   - Annotaion 기반의 Cache 추상화 기능 제공
 
-  - Repostory 기반의 Cache 추상화 기능 제공
+    - 가장 쓰기 쉬움
 
+  - Repository 기반의 Cache 추상화 기능 제공
+
+    - Database 와 유사한 아답터 제공
+  
   - Template 기반의 Cache 추상화 기능 제공
-
+  
+    - 정교한 처리가 가능
+    
     
 
 ## 7.2 의존성 추가
@@ -713,8 +719,8 @@ public String getCatalog(String productId) {...}
 
 ```java
 @Caching(evict = { 
-  @CacheEvict("catalog"), 
-  @CacheEvict(value="catalog2", key="#productId") })
+@CacheEvict("catalog"), 
+@CacheEvict(value="catalog2", key="#productId") })
 public String getCatalog(String productId) {...}
 ```
 
