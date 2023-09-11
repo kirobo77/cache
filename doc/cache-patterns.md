@@ -1400,7 +1400,7 @@ public class RedisSubscriber implements MessageListener {
 @Service
 @RequiredArgsConstructor
 public class RedisPubService {
-    private final RedisTemplate<String, Object> redisTemplate;
+   private final StringRedisTemplate redisTemplate;
 
 	public CatalogEntity setCatalog(CatalogEntity catalogEntity) {
 		ObjectMapper mapper = new ObjectMapper();
