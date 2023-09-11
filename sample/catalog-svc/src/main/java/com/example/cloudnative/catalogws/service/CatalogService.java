@@ -86,8 +86,13 @@ public class CatalogService {
 		return catalogEntity;
 	}
 
-	public CatalogEntity setCatalog(CatalogEntity catalogEntity) {
+	public CatalogEntity setCatalog(CatalogEntity catalogEntity) throws JsonProcessingException {
 		log.info("Cache Save = {}", catalogEntity);
+
+		ObjectMapper mapper = new ObjectMapper();
+		String catalogJson = mapper.writeValueAsString(catalogEntity);
+		redisTemplate.convertAndSend("Catalog", catalogJson);
+		
 		return catalogEntity;
 	}
 

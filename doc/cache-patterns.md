@@ -1371,10 +1371,15 @@ public class RedisSubscriber implements MessageListener {
 	@Override
 	public void onMessage(Message message, byte[] pattern) {
 		log.info("Message received = {}", message.toString());
-		GenericJackson2JsonRedisSerializer gs = new GenericJackson2JsonRedisSerializer();
-		CatalogEntity catalogEntity = (CatalogEntity) gs.deserialize(message.getBody());
-		log.info("catalogEntity =  {}", catalogEntity);
-		catalogRepository.save(catalogEntity);
+		ObjectMapper mapper = new ObjectMapper();
+		CatalogEntity catalogEntity;
+		try {
+			catalogEntity = mapper.readValue(message.toString(), CatalogEntity.class);
+			log.info("catalogEntity =  {}", catalogEntity);
+			catalogRepository.save(catalogEntity);
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
 	}
 }
 
@@ -1398,8 +1403,9 @@ public class RedisPubService {
     private final RedisTemplate<String, Object> redisTemplate;
 
 	public CatalogEntity setCatalog(CatalogEntity catalogEntity) {
-		log.info("Cache Save = {}", catalogEntity);
-		redisTemplate.convertAndSend("Catalog", catalogEntity);
+		ObjectMapper mapper = new ObjectMapper();
+		String catalogJson = mapper.writeValueAsString(catalogEntity);
+		redisTemplate.convertAndSend("Catalog", catalogJson);
 		return catalogEntity;
 	}
 }
