@@ -18,7 +18,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-@RedisHash(value = "catalog", timeToLive = 60L)
+@RedisHash(value = "catalog", timeToLive = 30L)
 public class CatalogDto {
 
 	private long id;

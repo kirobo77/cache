@@ -1312,6 +1312,13 @@ public class RedisConfig {
     
     private final CatalogRepository catalogRepository;
     
+    @Bean
+	public RedisConnectionFactory redisConnectionFactory() {
+		LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory();
+		lettuceConnectionFactory.setShareNativeConnection(false);
+		return lettuceConnectionFactory;
+	}
+    
    //리스너에 구독자 등록
 	@Bean
 	MessageListenerAdapter messageListenerAdapter() {

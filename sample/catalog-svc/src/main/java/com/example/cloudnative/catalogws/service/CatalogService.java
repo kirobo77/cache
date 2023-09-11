@@ -1,16 +1,23 @@
 package com.example.cloudnative.catalogws.service;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.retry.annotation.Recover;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
 import com.example.cloudnative.catalogws.entity.CatalogEntity;
+import com.example.cloudnative.catalogws.repository.CatalogCacheRepository;
+import com.example.cloudnative.catalogws.repository.CatalogDto;
 import com.example.cloudnative.catalogws.repository.CatalogRepository;
 import com.example.cloudnative.catalogws.util.ThreadUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,14 +28,56 @@ import lombok.extern.slf4j.Slf4j;
 public class CatalogService {
 
 	private final CatalogRepository catalogRepository;
-	
-	 private final RedisTemplate<String, Object> redisTemplate;
 
-	@Cacheable("catalog")
+	private final CatalogCacheRepository catalogCacheRepository;
+
+	private final StringRedisTemplate redisTemplate;
+
 	public Iterable<CatalogEntity> getAllCatalogs() {
 		log.info("getAllCatalogs");
-		ThreadUtil.sleep();
-		return catalogRepository.findAll();
+		List<CatalogEntity> catalogEntitys = null;
+		List<CatalogDto> catalogDtos = (List<CatalogDto>) catalogCacheRepository.findAll();
+		log.info("catalogDtos : {}", catalogDtos);
+		boolean isEmpty = false;
+		for (CatalogDto catalogDto : catalogDtos) {
+			if (catalogDto == null) {
+				isEmpty = true;
+			} else {
+				isEmpty = false;
+			}
+		}
+		if (catalogDtos == null || catalogDtos.size() == 0 || isEmpty == true) {
+			ThreadUtil.sleep();
+			catalogEntitys = (List<CatalogEntity>) catalogRepository.findAll();
+			List<CatalogDto> catalogs = new ArrayList<CatalogDto>();
+			for (CatalogEntity catalogEntity : catalogEntitys) {
+				CatalogDto catalogDto = new CatalogDto();
+				catalogDto.setId(catalogEntity.getId());
+				catalogDto.setProductId(catalogEntity.getProductId());
+				catalogDto.setProductName(catalogEntity.getProductName());
+				catalogDto.setStock(catalogEntity.getStock());
+				catalogDto.setUnitPrice(catalogEntity.getUnitPrice());
+				catalogs.add(catalogDto);
+			}
+			catalogCacheRepository.saveAll(catalogs);
+			return catalogEntitys;
+		} else {
+			List<CatalogEntity> catalogEntitys2 = new ArrayList<CatalogEntity>();
+			for (CatalogDto catalogDto : catalogDtos) {
+				if (catalogDto == null) {
+					continue;
+				}
+				CatalogEntity catalogEntity = new CatalogEntity();
+				catalogEntity.setId(catalogDto.getId());
+				catalogEntity.setProductId(catalogDto.getProductId());
+				catalogEntity.setProductName(catalogDto.getProductName());
+				catalogEntity.setStock(catalogDto.getStock());
+				catalogEntity.setUnitPrice(catalogDto.getUnitPrice());
+				catalogEntitys2.add(catalogEntity);
+			}
+			return catalogEntitys2;
+		}
+
 	}
 
 	public CatalogEntity createCatalog(CatalogEntity catalogEntity) throws JsonProcessingException {
@@ -39,31 +88,45 @@ public class CatalogService {
 
 	public CatalogEntity setCatalog(CatalogEntity catalogEntity) {
 		log.info("Cache Save = {}", catalogEntity);
-		redisTemplate.convertAndSend("Catalog", catalogEntity);
 		return catalogEntity;
 	}
 
-	
-	@CacheEvict(value="catalog", allEntries=true)
+	@CacheEvict(value = "catalog", allEntries = true)
 	public void deleteCatalog() {
 		log.info("delete Cache");
 	}
-	
+
+	public CatalogEntity getCatalog(String productId) throws JsonMappingException, JsonProcessingException {
+		log.info("getCatalog = {}", productId);
 		
-	@Retryable(maxAttempts = 1)
-	@Cacheable(value = "catalog", key = "#productId")
-	public CatalogEntity getCatalog(String productId) {
-		log.info("Cache Miss = {}", productId);
-		ThreadUtil.sleep();
-		CatalogEntity catalogEntity = catalogRepository.findByProductId(productId);
+		String key = "catalog:" + productId;
+		
+		ValueOperations<String, String> stringStringValueOperations = redisTemplate.opsForValue();
+		
+		CatalogEntity catalogEntity = null;
+		
+		String catalogJson = stringStringValueOperations.get(key);
+		
+		ObjectMapper mapper = new ObjectMapper();
+		if(catalogJson==null) {
+			ThreadUtil.sleep();
+			catalogEntity = catalogRepository.findByProductId(productId);
+			catalogJson = mapper.writeValueAsString(catalogEntity);
+			stringStringValueOperations.set(key, catalogJson, 30L, TimeUnit.SECONDS); // redis set 명령어
+		}
+		else {
+			catalogEntity = mapper.readValue(catalogJson, CatalogEntity.class);
+		}
+		
+
 		return catalogEntity;
 	}
-	
+
 	@Recover
 	public CatalogEntity getCatalog(Exception e, String productId) {
 		log.info("Fallback Cache = {}", productId);
 		CatalogEntity catalogEntity = catalogRepository.findByProductId(productId);
 		return catalogEntity;
 	}
-	
+
 }

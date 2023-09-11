@@ -42,5 +42,10 @@ public class CacheConfig {
 		customConfigurationMap.put("catalog", defaultConfiguration().entryTtl(Duration.ofSeconds(30L)));
 		return customConfigurationMap;
 	}
+	
+	@Bean("customKeyGenerator")
+	public KeyGenerator keyGenerator() {
+		return new CustomKeyGenerator();
+	}
 
 }

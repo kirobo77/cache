@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,6 +23,7 @@ import com.example.cloudnative.catalogws.model.CatalogRequestModel;
 import com.example.cloudnative.catalogws.model.CatalogResponseModel;
 import com.example.cloudnative.catalogws.service.CatalogService;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -65,7 +67,7 @@ public class CatalogController {
     }
     
     @GetMapping(value="/catalog/{productId}")
-    public ResponseEntity<CatalogResponseModel> getCatalog(@PathVariable("productId") String productId) {
+    public ResponseEntity<CatalogResponseModel> getCatalog(@PathVariable("productId") String productId) throws JsonMappingException, JsonProcessingException {
     	log.info("getCatalogs");
     	
     	CatalogEntity catalogEntity = catalogService.getCatalog(productId);
