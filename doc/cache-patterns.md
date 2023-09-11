@@ -1716,9 +1716,56 @@ public class CacheAsideWriteAroundService {
 2. 캐시는 데이터가 있으면 (Cache Hit) 바로 반환
 3. 데이터가 없다면 (Cache Miss) **캐시가 DB 에서 데이터를 조회**한 후에 캐시에 저장 후 반환
 
+### 8.4.4 Refresh Ahead
+
+- 자주 사용되는 데이터를 캐시 만료 전에 미리 TTL (Expire time) 을 갱신한다.
+- 캐시 미스 발생을 최소화 할 수 있지만 Warm Up 작업과 마찬가지로 자주 사용되는 데이터를 잘 예측해야 한다.
+
+- **실습**
+
+```java
+import java.util.concurrent.TimeUnit;
+
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Service;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@Service
+@Slf4j
+@RequiredArgsConstructor
+public class RefreshAheadService{
+
+	RedisTemplate<String, Object> redisTemplate;
+	
+	public void refreshAhead(String productId) {
+		log.info("refreshAhead = {}", productId);
+        //캐시 만료시간 갱신
+		redisTemplate.expire(String.format("catalog::%s", productId), 1, TimeUnit.MINUTES);
+	}
+
+}
+
+```
+
+- 갱신을 위한 API 작성해서 호출해서 대상 키의 TTL이 연장되었는지 확인해본다.
+
+```java
+    @GetMapping(value="/refresh-ahead/{productId}")
+    public ResponseEntity<Void> refreshAhead(@PathVariable("productId") String productId)  {
+    	log.info("refreshAhead = {}", productId);
+    	
+    	refreshAhead.refreshAhead(productId);
+                
+        return ResponseEntity.status(HttpStatus.OK).body(null);
+    }
+
+```
 
 
-### 8.4.4 읽기 캐시에서 발생 가능한 장애
+
+### 8.4.5 읽기 캐시에서 발생 가능한 장애
 
 ####  8.4.4.1 Thundering Herd
 
@@ -1938,55 +1985,6 @@ public class WriteBehindService{
 	}
 	
 }
-
-```
-
-
-
-### 8.5.4 Refresh Ahead
-
-- 자주 사용되는 데이터를 캐시 만료 전에 미리 TTL (Expire time) 을 갱신한다.
-- 캐시 미스 발생을 최소화 할 수 있지만 Warm Up 작업과 마찬가지로 자주 사용되는 데이터를 잘 예측해야 한다.
-
-- **실습**
-
-```java
-import java.util.concurrent.TimeUnit;
-
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Service;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
-@Service
-@Slf4j
-@RequiredArgsConstructor
-public class RefreshAheadService{
-
-	RedisTemplate<String, Object> redisTemplate;
-	
-	public void refreshAhead(String productId) {
-		log.info("refreshAhead = {}", productId);
-        //캐시 만료시간 갱신
-		redisTemplate.expire(String.format("catalog::%s", productId), 1, TimeUnit.MINUTES);
-	}
-
-}
-
-```
-
-- 갱신을 위한 API 작성해서 호출해서 대상 키의 TTL이 연장되었는지 확인해본다.
-
-```java
-    @GetMapping(value="/refresh-ahead/{productId}")
-    public ResponseEntity<Void> refreshAhead(@PathVariable("productId") String productId)  {
-    	log.info("refreshAhead = {}", productId);
-    	
-    	refreshAhead.refreshAhead(productId);
-                
-        return ResponseEntity.status(HttpStatus.OK).body(null);
-    }
 
 ```
 
